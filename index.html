@@ -1,0 +1,1201 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>事業コンソール</title>
+<style>
+:root{
+  --paper:#EDF1F3; --panel:#FAFBFC; --ink:#1B2733; --ink2:#4A5A68; --ink3:#7A8A97;
+  --line:#C6D1D8; --line2:#DCE3E8; --wash:#E4E9ED;
+  --indigo:#2D4A87; --indigo-ink:#fff; --indigo-soft:#D9E2F3;
+  --amber:#B87A0C; --amber-soft:#F6E6BF; --amber-ink:#5E3F00;
+  --green:#2B7556; --green-soft:#D4EADF;
+  --red:#B03E32; --red-soft:#F4DAD6;
+  --focus:#2D6AE3;
+  --font:"BIZ UDPGothic","Yu Gothic UI","Hiragino Sans","Noto Sans JP","Meiryo UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#12191F; --panel:#1A232B; --ink:#E3E9ED; --ink2:#A9B6C0; --ink3:#7C8B97;
+    --line:#33424E; --line2:#27333D; --wash:#212C35;
+    --indigo:#8FA9E6; --indigo-ink:#0F1822; --indigo-soft:#26365A;
+    --amber:#E3A83A; --amber-soft:#4A3913; --amber-ink:#F5DDA2;
+    --green:#5CC49A; --green-soft:#1E3F32;
+    --red:#EA7A6D; --red-soft:#4A2622;
+    --focus:#7FA6FF;
+  }
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:14px/1.6 var(--font);-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+h1,h2,h3{margin:0;font-weight:700;font-feature-settings:"palt"}
+a{color:var(--indigo)}
+small,.sm{font-size:12px;color:var(--ink2)}
+.muted{color:var(--ink2)}
+.num{font-variant-numeric:tabular-nums;text-align:right}
+
+#app{display:grid;grid-template-columns:184px minmax(0,1fr);min-height:100%}
+#rail{background:var(--ink);color:#DDE5EA;padding:18px 0;position:sticky;top:0;height:100vh;display:flex;flex-direction:column}
+@media (prefers-color-scheme:dark){#rail{background:#0C1217}}
+#rail .brand{padding:0 18px 16px;font-weight:700;font-size:15px;line-height:1.3;border-bottom:1px solid rgba(255,255,255,.14);margin-bottom:10px}
+#rail .brand small{display:block;color:#93A3AF;font-weight:400;margin-top:4px}
+#rail button.nav{display:flex;justify-content:space-between;align-items:center;width:100%;border:0;background:none;color:inherit;text-align:left;padding:9px 18px;border-left:3px solid transparent}
+#rail button.nav:hover{background:rgba(255,255,255,.07)}
+#rail button.nav[aria-current="page"]{background:rgba(255,255,255,.12);border-left-color:#E3A83A;font-weight:700}
+#rail .count{font-size:12px;min-width:20px;text-align:center;padding:0 6px;border-radius:9px;background:rgba(255,255,255,.14)}
+#rail .count.claude{background:#E3A83A;color:#2A1C00;font-weight:700}
+#rail .foot{margin-top:auto;padding:12px 18px 0;font-size:12px;color:#93A3AF;border-top:1px solid rgba(255,255,255,.14)}
+
+#main{min-width:0;padding:0 28px 80px}
+#top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:22px 0 14px}
+#top h1{font-size:24px;margin-right:auto}
+.status{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--ink2);border:1px solid var(--line);background:var(--panel);padding:3px 10px;border-radius:12px}
+.status i{width:8px;height:8px;border-radius:50%;background:var(--ink3);display:inline-block}
+.status.ok i{background:var(--green)} .status.warn i{background:var(--amber)} .status.bad i{background:var(--red)}
+
+.btn{border:1px solid var(--line);background:var(--panel);padding:6px 13px;border-radius:5px;line-height:1.4}
+.btn:hover{border-color:var(--ink3)}
+.btn.primary{background:var(--indigo);border-color:var(--indigo);color:var(--indigo-ink);font-weight:700}
+.btn.claude{background:var(--amber-soft);border-color:var(--amber);color:var(--amber-ink);font-weight:700}
+.btn.danger{color:var(--red);border-color:var(--red-soft)}
+.btn.sm{padding:3px 9px;font-size:12px}
+.btn.ghost{border-color:transparent;background:none;color:var(--indigo)}
+button.link{border:0;background:none;padding:0;color:var(--indigo);text-align:left;font-weight:700}
+button.link:hover{text-decoration:underline}
+
+.banner{display:flex;gap:14px;align-items:center;flex-wrap:wrap;border:1px solid var(--line);border-left:4px solid var(--amber);background:var(--panel);padding:10px 14px;margin-bottom:12px;border-radius:0 5px 5px 0}
+.banner.bad{border-left-color:var(--red)}
+.banner p{margin:0;flex:1;min-width:240px}
+
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px 18px;min-width:0}
+.panel>h2{font-size:15px;margin-bottom:10px;display:flex;align-items:baseline;gap:10px}
+.panel>h2 small{font-weight:400}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px;margin-bottom:14px}
+.stack{display:grid;gap:14px;min-width:0;align-content:start}
+
+.figures{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));border:1px solid var(--line);background:var(--panel);border-radius:6px;margin-bottom:14px}
+.figures>div{padding:12px 18px;border-right:1px solid var(--line2)}
+.figures>div:last-child{border-right:0}
+.figures b{display:block;font-size:24px;line-height:1.25;font-weight:700;font-variant-numeric:tabular-nums}
+.figures span{font-size:12px;color:var(--ink2)}
+.figures .warnfig b{color:var(--red)} .figures .claudefig b{color:var(--amber)}
+
+/* chevron flow */
+.flow{display:flex;gap:0;margin:4px 0 6px}
+.flow button{flex:1;min-width:0;border:0;padding:10px 6px 10px 20px;color:var(--ink);background:var(--indigo-soft);text-align:left;
+  clip-path:polygon(0 0,calc(100% - 13px) 0,100% 50%,calc(100% - 13px) 100%,0 100%,13px 50%);margin-left:-6px}
+.flow button:first-child{margin-left:0;padding-left:12px;clip-path:polygon(0 0,calc(100% - 13px) 0,100% 50%,calc(100% - 13px) 100%,0 100%)}
+.flow button:hover{filter:brightness(.96)}
+.flow b{display:block;font-size:20px;line-height:1.2;font-variant-numeric:tabular-nums}
+.flow span{font-size:12px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.flow button[data-n="0"]{background:var(--wash)}
+.flow button[data-n="0"] b{color:var(--ink3)}
+
+.list{list-style:none;margin:0;padding:0}
+.list li{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--line2)}
+.list li:first-child{border-top:0}
+.list .grow{flex:1;min-width:0}
+.list .t{display:block;overflow-wrap:anywhere}
+.empty{color:var(--ink2);padding:14px 0}
+
+.pill{display:inline-block;font-size:12px;line-height:1.5;padding:0 8px;border-radius:3px;background:var(--wash);color:var(--ink2);white-space:nowrap}
+.pill.indigo{background:var(--indigo-soft);color:var(--indigo)}
+.pill.amber{background:var(--amber-soft);color:var(--amber-ink)}
+.pill.green{background:var(--green-soft);color:var(--green)}
+.pill.red{background:var(--red-soft);color:var(--red)}
+.tag{font-size:12px;color:var(--ink2);margin-right:8px}
+.tag::before{content:"#"}
+
+/* toolbar */
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.toolbar .grow{flex:1}
+.toolbar input[type=search],.toolbar input[type=text],.toolbar select{border:1px solid var(--line);background:var(--panel);padding:6px 10px;border-radius:5px;min-width:0}
+.toolbar input[type=search]{width:220px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--panel);padding:2px 11px;border-radius:13px;font-size:13px}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper);font-weight:700}
+.popwrap{position:relative}
+.pop{position:absolute;right:0;top:calc(100% + 4px);z-index:20;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:10px 12px;min-width:200px;display:grid;gap:4px;box-shadow:0 6px 24px rgba(0,0,0,.16)}
+.pop label{display:flex;gap:8px;align-items:center}
+
+/* tables */
+.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+table{border-collapse:collapse;width:100%}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line2);text-align:left;vertical-align:middle}
+th{position:sticky;top:0;background:var(--wash);font-size:12px;font-weight:700;color:var(--ink2);white-space:nowrap}
+th button{border:0;background:none;font-weight:inherit;color:inherit;padding:0}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:color-mix(in srgb,var(--indigo-soft) 35%,transparent)}
+td.num,th.num{text-align:right}
+tr.retired td{color:var(--ink3)}
+tr.retired .link{color:var(--ink3);text-decoration:line-through}
+
+/* matrix (工程表) */
+.matrix td,.matrix th{padding:0}
+.matrix th{padding:8px 10px;text-align:center;border-left:1px solid var(--line2)}
+.matrix th.who,.matrix td.who{text-align:left;padding:8px 12px;min-width:240px;border-left:0}
+.matrix td.cellc{border-left:1px solid var(--line2);width:92px;height:46px;padding:0}
+.matrix td.st{padding:8px 12px;min-width:170px;font-size:13px;border-left:1px solid var(--line2)}
+.cell{display:flex;align-items:center;justify-content:center;width:100%;height:46px;border:0;background:none;font-size:12px;color:var(--ink3)}
+.cell:hover{background:var(--indigo-soft)}
+.cell.done{background:var(--indigo-soft);color:var(--indigo);font-weight:700}
+.cell.now{background:var(--indigo);color:var(--indigo-ink);font-weight:700}
+.cell.now.late{background:var(--red);color:#fff}
+.legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0;margin-bottom:12px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+.legend div{padding:9px 12px;border-right:1px solid var(--line2);font-size:12px;color:var(--ink2)}
+.legend div:last-child{border-right:0}
+.legend b{display:block;color:var(--ink);font-size:13px}
+
+/* tasks board */
+.board{display:grid;grid-template-columns:repeat(3,minmax(250px,1fr));gap:12px;align-items:start}
+.col{background:var(--wash);border-radius:6px;padding:10px;min-height:160px}
+.col.over{outline:2px dashed var(--indigo)}
+.col>h2{font-size:13px;margin:0 2px 8px;display:flex;justify-content:space-between}
+.card{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--line);border-radius:4px;padding:8px 10px;margin-bottom:8px;cursor:grab}
+.card.high{border-left-color:var(--red)} .card.mid{border-left-color:var(--indigo)}
+.card.dragging{opacity:.4}
+.card .ct{display:block;font-weight:700;margin-bottom:4px;overflow-wrap:anywhere;text-align:left}
+.card .meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--ink2)}
+.card.done .ct{color:var(--ink3);text-decoration:line-through}
+.card .result{margin-top:6px;font-size:12px;color:var(--ink2);border-top:1px dashed var(--line);padding-top:5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+/* tools */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+.tool{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.tool header{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.tool p{margin:0;font-size:13px;color:var(--ink2);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.tool footer{margin-top:auto;font-size:12px;color:var(--ink2);display:flex;justify-content:space-between;gap:8px}
+
+/* intel */
+.capture{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;padding:12px;border:1px dashed var(--ink3);border-radius:6px;background:var(--panel)}
+.capture input{flex:1;min-width:240px;border:1px solid var(--line);background:var(--paper);padding:7px 10px;border-radius:5px}
+.capture select{border:1px solid var(--line);background:var(--paper);padding:7px;border-radius:5px}
+.rows{border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+.rows .row{display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:12px;padding:10px 14px;border-top:1px solid var(--line2);align-items:start}
+.rows .row:first-child{border-top:0}
+.rows .row p{margin:2px 0 0;font-size:13px;color:var(--ink2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rows .side{text-align:right;font-size:12px;color:var(--ink2);display:grid;gap:2px;justify-items:end}
+.rate{letter-spacing:2px;color:var(--amber)}
+
+/* claude page */
+.steps{margin:0;padding-left:1.3em}
+.steps li{margin:4px 0}
+.cmd{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--paper);border:1px solid var(--line);border-radius:5px;padding:6px 10px;margin:6px 0}
+.cmd code{flex:1;min-width:200px;font-family:ui-monospace,Consolas,monospace;font-size:13px;overflow-wrap:anywhere}
+.log{max-height:300px;overflow:auto;font-size:13px}
+.log div{display:flex;gap:10px;padding:3px 0;border-top:1px solid var(--line2)}
+.log time{color:var(--ink3);white-space:nowrap;font-variant-numeric:tabular-nums}
+
+/* drawer + modal */
+#scrim{position:fixed;inset:0;background:rgba(10,18,24,.4);opacity:0;pointer-events:none;transition:opacity .15s;z-index:30}
+#scrim.on{opacity:1;pointer-events:auto}
+#drawer{position:fixed;top:0;right:0;bottom:0;width:min(540px,100vw);background:var(--panel);border-left:1px solid var(--line);z-index:31;transform:translateX(102%);transition:transform .18s ease-out;display:flex;flex-direction:column}
+#drawer.on{transform:none}
+#drawer .dh{display:flex;gap:10px;align-items:flex-start;padding:16px 18px 12px;border-bottom:1px solid var(--line)}
+#drawer .dh h2{flex:1;font-size:17px;overflow-wrap:anywhere}
+#drawer .db{flex:1;overflow:auto;padding:14px 18px 24px}
+#drawer .df{display:flex;gap:8px;flex-wrap:wrap;padding:12px 18px;border-top:1px solid var(--line);background:var(--wash)}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
+.fld{display:grid;gap:3px;min-width:0}
+.fld.full{grid-column:1/-1}
+.fld>span{font-size:12px;color:var(--ink2)}
+.fld input,.fld select,.fld textarea{width:100%;border:1px solid var(--line);background:var(--paper);padding:6px 9px;border-radius:5px;min-width:0}
+.fld textarea{resize:vertical;line-height:1.55}
+.sec{margin-top:18px}
+.sec>h3{font-size:13px;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--line2)}
+.stagechips{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px}
+.stagechips button{border:1px solid var(--line);background:var(--paper);padding:2px 10px;border-radius:3px;font-size:13px}
+.stagechips button.on{background:var(--indigo);border-color:var(--indigo);color:var(--indigo-ink);font-weight:700}
+.stagechips button.out.on{background:var(--ink3);border-color:var(--ink3)}
+.check{display:flex;gap:8px;align-items:center;padding:3px 0}
+.check span{flex:1}
+.check.done span{color:var(--ink3);text-decoration:line-through}
+.addline{display:flex;gap:6px;margin-top:6px}
+.addline input{flex:1;border:1px solid var(--line);background:var(--paper);padding:5px 9px;border-radius:5px}
+#modal-root .ms{position:fixed;inset:0;background:rgba(10,18,24,.5);z-index:40}
+#modal-root form{position:fixed;z-index:41;left:50%;top:50%;transform:translate(-50%,-50%);width:min(560px,calc(100vw - 24px));max-height:calc(100vh - 24px);overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:18px 20px}
+#modal-root h2{font-size:17px;margin-bottom:12px}
+.tpls{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+#toasts{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:60;display:grid;gap:8px;justify-items:center}
+.toast{background:var(--ink);color:var(--paper);padding:8px 14px;border-radius:6px;display:flex;gap:12px;align-items:center;max-width:min(560px,92vw);font-size:13px}
+.toast button{border:1px solid currentColor;background:none;border-radius:4px;padding:0 8px;font-size:12px}
+
+@media (max-width:900px){
+  #app{grid-template-columns:1fr}
+  #rail{position:static;height:auto;flex-direction:row;overflow-x:auto;padding:0}
+  #rail .brand,#rail .foot{display:none}
+  #rail button.nav{width:auto;white-space:nowrap;gap:8px;border-left:0;border-bottom:3px solid transparent;padding:12px 14px}
+  #rail button.nav[aria-current="page"]{border-bottom-color:#E3A83A}
+  #main{padding:0 14px 80px}
+  .board{grid-template-columns:1fr}
+  .fgrid{grid-template-columns:1fr}
+  .rows .row{grid-template-columns:1fr}
+  .rows .side{justify-items:start;text-align:left}
+}
+@media (prefers-reduced-motion:reduce){#drawer,#scrim{transition:none}}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <nav id="rail" aria-label="メイン"></nav>
+  <div id="main">
+    <header id="top"></header>
+    <div id="banner"></div>
+    <main id="view"></main>
+  </div>
+</div>
+<div id="scrim" data-act="closeDrawer"></div>
+<aside id="drawer" aria-hidden="true" aria-label="詳細"></aside>
+<div id="modal-root"></div>
+<div id="toasts" aria-live="polite"></div>
+<input type="file" id="importer" accept="application/json,.json" hidden>
+<script id="seed" type="application/json">{"schema":1,"meta":{"name":"事業コンソール","stages":["アイデア","調査","制作","出品","計測","改善"],"decisionDays":60,"updatedAt":"2026-10-05T09:00:00+09:00"},"products":[{"id":"p-sample01","name":"個人事業主の帳簿テンプレ(Excel)","kind":"テンプレ","market":"JP","channel":"BOOTH","stage":"出品","stageAt":"2026-09-25","price":1500,"currency":"JPY","url":"","listedAt":"2026-09-25","sales":0,"revenue":0,"niche":"個人事業主 帳簿 テンプレート","folder":"products/bookkeeping-jp","notes":"サンプル。税率・計算式の検算が済んでから出品する。","checklist":[{"text":"需要を確認した(検索数・競合)","done":true},{"text":"他者の著作物・過去問を使っていない","done":true},{"text":"計算式・数値を検算した","done":true},{"text":"日本語版/英語版の用意","done":true},{"text":"特商法・規約・免責の表記","done":true},{"text":"出品文・タグ・サムネ","done":true},{"text":"アフィリンクに広告表記を入れた","done":false},{"text":"判断日(出品から60日)をカレンダーに入れた","done":false}],"sample":true,"createdAt":"2026-10-05T09:00:00+09:00","updatedAt":"2026-10-05T09:00:00+09:00"},{"id":"p-sample02","name":"Freelance invoice tracker(Google Sheets)","kind":"テンプレ","market":"EN","channel":"Etsy","stage":"計測","stageAt":"2026-08-01","price":12,"currency":"USD","url":"","listedAt":"2026-08-01","sales":0,"revenue":0,"niche":"freelance invoice tracker template","folder":"products/invoice-tracker-en","notes":"サンプル。出品後60日で販売0なら撤退を検討する。","checklist":[{"text":"需要を確認した(検索数・競合)","done":true},{"text":"他者の著作物・過去問を使っていない","done":true},{"text":"計算式・数値を検算した","done":true},{"text":"日本語版/英語版の用意","done":true},{"text":"特商法・規約・免責の表記","done":true},{"text":"出品文・タグ・サムネ","done":true},{"text":"アフィリンクに広告表記を入れた","done":true},{"text":"判断日(出品から60日)をカレンダーに入れた","done":true}],"sample":true,"createdAt":"2026-10-05T09:00:00+09:00","updatedAt":"2026-10-05T09:00:00+09:00"},{"id":"p-sample03","name":"補助金シミュレーター","kind":"計算機・ツール","market":"JP","channel":"自サイト","stage":"調査","stageAt":"2026-10-01","price":0,"currency":"JPY","url":"","listedAt":"","sales":0,"revenue":0,"niche":"補助金 シミュレーター","folder":"","notes":"サンプル。公開データを使う。結果ページに関連サービスのアフィリンクを置く案。","checklist":[],"sample":true,"createdAt":"2026-10-05T09:00:00+09:00","updatedAt":"2026-10-05T09:00:00+09:00"},{"id":"p-sample04","name":"Freelance tax estimator","kind":"計算機・ツール","market":"EN","channel":"自サイト","stage":"アイデア","stageAt":"2026-10-01","price":0,"currency":"USD","url":"","listedAt":"","sales":0,"revenue":0,"niche":"freelance tax calculator","folder":"","notes":"サンプル。国別に独自ロジックを持たせないと量産ページ扱いになりやすい。","checklist":[],"sample":true,"createdAt":"2026-10-05T09:00:00+09:00","updatedAt":"2026-10-05T09:00:00+09:00"},{"id":"p-sample05","name":"宅建 直前対策 演習","kind":"PDF・教材","market":"JP","channel":"自サイト","stage":"アイデア","stageAt":"2026-10-01","price":980,"currency":"JPY","url":"","listedAt":"","sales":0,"revenue":0,"niche":"宅建 直前 問題集","folder":"","notes":"サンプル。過去問の転載・流出問題は使わない。法令の出題範囲の誤りに注意。","checklist":[],"sample":true,"createdAt":"2026-10-05T09:00:00+09:00","updatedAt":"2026-10-05T09:00:00+09:00"},{"id":"p-sample06","name":"数学ワークシート(印刷用PDF)","kind":"PDF・教材","market":"EN","channel":"Etsy","stage":"調査","stageAt":"2026-10-01","price":5,"currency":"USD","url":"","listedAt":"","sales":0,"revenue":0,"niche":"math worksheets printable","folder":"","notes":"サンプル。解答の検算を必ず行う。","checklist":[],"sample":true,"createdAt":"2026-10-05T09:00:00+09:00","updatedAt":"2026-10-05T09:00:00+09:00"},{"id":"p-sample07","name":"CLAUDE.md集・スキル集","kind":"開発者向け","market":"JP+EN","channel":"Gumroad","stage":"アイデア","stageAt":"2026-10-01","price":19,"currency":"USD","url":"","listedAt":"","sales":0,"revenue":0,"niche":"claude code skills template","folder":"","notes":"サンプル。購入者が自力で使えるのでサポートがほぼ発生しない。","checklist":[],"sample":true,"createdAt":"2026-10-05T09:00:00+09:00","updatedAt":"2026-10-05T09:00:00+09:00"},{"id":"p-sample08","name":"ECセラー向けChrome拡張","kind":"拡張機能","market":"EN","channel":"Chrome Web Store","stage":"アイデア","stageAt":"2026-10-01","price":0,"currency":"USD","url":"","listedAt":"","sales":0,"revenue":0,"niche":"chrome extension ecommerce seller","folder":"","notes":"サンプル。レビュー対応が必要になる点に注意。","checklist":[],"sample":true,"createdAt":"2026-10-05T09:00:00+09:00","updatedAt":"2026-10-05T09:00:00+09:00"},{"id":"p-sample09","name":"副業管理 Notionテンプレ","kind":"テンプレ","market":"JP","channel":"BOOTH","stage":"制作","stageAt":"2026-10-03","price":1200,"currency":"JPY","url":"","listedAt":"","sales":0,"revenue":0,"niche":"副業 管理 notion","folder":"","notes":"サンプル。","checklist":[{"text":"需要を確認した(検索数・競合)","done":true},{"text":"他者の著作物・過去問を使っていない","done":true},{"text":"計算式・数値を検算した","done":false},{"text":"日本語版/英語版の用意","done":false},{"text":"特商法・規約・免責の表記","done":false},{"text":"出品文・タグ・サムネ","done":false},{"text":"アフィリンクに広告表記を入れた","done":false},{"text":"判断日(出品から60日)をカレンダーに入れた","done":false}],"sample":true,"createdAt":"2026-10-05T09:00:00+09:00","updatedAt":"2026-10-05T09:00:00+09:00"}],"tasks":[{"id":"t-sample01","title":"ニッチ候補を100個挙げ、需要で20個に絞る","status":"todo","assignee":"claude","kind":"research","priority":"high","due":"2026-10-09","ref":"","notes":"日本語・英語の両方。検索需要の根拠、競合の強さ、作りやすさを添えて、情報収集(intel)に type=アイデア で追加する。","result":"","sample":true,"createdAt":"2026-10-05T09:00:00+09:00","updatedAt":"2026-10-05T09:00:00+09:00"},{"id":"t-sample02","title":"計算機サイト用のテンプレ(LP・決済リンク・特商法・サイトマップ)を作る","status":"todo","assignee":"claude","kind":"build","priority":"high","due":"2026-10-12","ref":"","notes":"products/_template/ に作る。完成したら動作確認の手順を result に書く。","result":"","sample":true,"createdAt":"2026-10-05T09:00:00+09:00","updatedAt":"2026-10-05T09:00:00+09:00"},{"id":"t-sample03","title":"Etsy出品文・タグ13個・サムネ文言を作る","status":"todo","assignee":"claude","kind":"write","priority":"mid","due":"2026-10-10","ref":"product:p-sample02","notes":"英語。タイトルは140文字以内。AI利用の開示ルールは出品前に最新を確認。","result":"","sample":true,"createdAt":"2026-10-05T09:00:00+09:00","updatedAt":"2026-10-05T09:00:00+09:00"},{"id":"t-sample04","title":"帳簿テンプレの税率・計算式を検算する","status":"doing","assignee":"claude","kind":"review","priority":"high","due":"2026-10-08","ref":"product:p-sample01","notes":"公的な情報で税率を確認し、結果と根拠URLを result に書く。","result":"","sample":true,"createdAt":"2026-10-05T09:00:00+09:00","updatedAt":"2026-10-05T09:00:00+09:00"},{"id":"t-sample05","title":"BOOTH/Etsy/Gumroadのアカウントを準備する","status":"todo","assignee":"me","kind":"other","priority":"high","due":"2026-10-08","ref":"","notes":"アカウント作成・本人確認は自分で行う。","result":"","sample":true,"createdAt":"2026-10-05T09:00:00+09:00","updatedAt":"2026-10-05T09:00:00+09:00"},{"id":"t-sample06","title":"Search Consoleにサイトを登録する","status":"todo","assignee":"me","kind":"other","priority":"mid","due":"2026-10-15","ref":"","notes":"","result":"","sample":true,"createdAt":"2026-10-05T09:00:00+09:00","updatedAt":"2026-10-05T09:00:00+09:00"},{"id":"t-sample07","title":"CLAUDE.mdとスキルを配置する","status":"done","assignee":"me","kind":"other","priority":"mid","due":"2026-10-05","ref":"","notes":"このフォルダの構成をそのまま使う。","result":"","sample":true,"createdAt":"2026-10-05T09:00:00+09:00","updatedAt":"2026-10-05T09:00:00+09:00"}],"tools":[{"id":"k-sample01","name":"Gumroad","category":"販売先","status":"気になる","url":"https://gumroad.com","cost":"要確認","pros":"","cons":"","affiliate":"","notes":"デジタル商品の販売。手数料と税務の扱いは最新を確認。","sample":true,"createdAt":"2026-10-05T09:00:00+09:00","updatedAt":"2026-10-05T09:00:00+09:00"},{"id":"k-sample02","name":"Lemon Squeezy","category":"決済","status":"気になる","url":"https://www.lemonsqueezy.com","cost":"要確認","pros":"","cons":"","affiliate":"","notes":"Merchant of Record型。海外の消費税処理を任せられるか確認。","sample":true,"createdAt":"2026-10-05T09:00:00+09:00","updatedAt":"2026-10-05T09:00:00+09:00"},{"id":"k-sample03","name":"BOOTH","category":"販売先","status":"気になる","url":"https://booth.pm","cost":"要確認","pros":"","cons":"","affiliate":"","notes":"日本向けのデジタル商品。","sample":true,"createdAt":"2026-10-05T09:00:00+09:00","updatedAt":"2026-10-05T09:00:00+09:00"},{"id":"k-sample04","name":"Etsy","category":"販売先","status":"気になる","url":"https://www.etsy.com","cost":"要確認","pros":"","cons":"","affiliate":"","notes":"英語圏のテンプレ・印刷物。AI利用の開示ルールを確認。","sample":true,"createdAt":"2026-10-05T09:00:00+09:00","updatedAt":"2026-10-05T09:00:00+09:00"},{"id":"k-sample05","name":"Stripe Payment Links","category":"決済","status":"気になる","url":"https://stripe.com","cost":"要確認","pros":"","cons":"","affiliate":"","notes":"自サイトの購入ボタンに使う。特商法表記が必要。","sample":true,"createdAt":"2026-10-05T09:00:00+09:00","updatedAt":"2026-10-05T09:00:00+09:00"},{"id":"k-sample06","name":"Playwright","category":"制作","status":"気になる","url":"https://playwright.dev","cost":"要確認","pros":"","cons":"","affiliate":"","notes":"HTMLのスクリーンショットで商品画像・モックアップを量産する。","sample":true,"createdAt":"2026-10-05T09:00:00+09:00","updatedAt":"2026-10-05T09:00:00+09:00"},{"id":"k-sample07","name":"Google Search Console","category":"集客・SEO","status":"気になる","url":"https://search.google.com/search-console","cost":"要確認","pros":"","cons":"","affiliate":"","notes":"公開後の表示回数・クリックを見る。","sample":true,"createdAt":"2026-10-05T09:00:00+09:00","updatedAt":"2026-10-05T09:00:00+09:00"},{"id":"k-sample08","name":"A8.net","category":"アフィリエイト","status":"気になる","url":"https://www.a8.net","cost":"要確認","pros":"","cons":"","affiliate":"","notes":"日本のASP。ステマ規制に沿った広告表記が必要。","sample":true,"createdAt":"2026-10-05T09:00:00+09:00","updatedAt":"2026-10-05T09:00:00+09:00"},{"id":"k-sample09","name":"afb","category":"アフィリエイト","status":"気になる","url":"https://www.afi-b.com","cost":"要確認","pros":"","cons":"","affiliate":"","notes":"日本のASP。","sample":true,"createdAt":"2026-10-05T09:00:00+09:00","updatedAt":"2026-10-05T09:00:00+09:00"},{"id":"k-sample10","name":"もしもアフィリエイト","category":"アフィリエイト","status":"気になる","url":"https://af.moshimo.com","cost":"要確認","pros":"","cons":"","affiliate":"","notes":"日本のASP。","sample":true,"createdAt":"2026-10-05T09:00:00+09:00","updatedAt":"2026-10-05T09:00:00+09:00"},{"id":"k-sample11","name":"PartnerStack","category":"アフィリエイト","status":"気になる","url":"https://www.partnerstack.com","cost":"要確認","pros":"","cons":"","affiliate":"","notes":"英語圏のSaaS向けアフィリエイト。","sample":true,"createdAt":"2026-10-05T09:00:00+09:00","updatedAt":"2026-10-05T09:00:00+09:00"},{"id":"k-sample12","name":"Claude Code","category":"制作","status":"採用","url":"https://claude.com/claude-code","cost":"要確認","pros":"","cons":"","affiliate":"","notes":"量産パイプラインの本体。","sample":true,"createdAt":"2026-10-05T09:00:00+09:00","updatedAt":"2026-10-05T09:00:00+09:00"}],"intel":[{"id":"i-sample01","title":"Etsy: AI利用の開示ルール","type":"規約・注意","status":"新着","url":"","summary":"出品前に最新の規約を確認する。(未確認)","notes":"","tags":["Etsy","規約"],"rating":3,"source":"me","sample":true,"createdAt":"2026-10-05T09:00:00+09:00","updatedAt":"2026-10-05T09:00:00+09:00"},{"id":"i-sample02","title":"日本: ステマ規制(景表法)","type":"規約・注意","status":"新着","url":"","summary":"アフィリンクを置くページには広告表記を入れる。","notes":"","tags":["日本","アフィリエイト"],"rating":3,"source":"me","sample":true,"createdAt":"2026-10-05T09:00:00+09:00","updatedAt":"2026-10-05T09:00:00+09:00"},{"id":"i-sample03","title":"日本: 特定商取引法に基づく表記","type":"規約・注意","status":"新着","url":"","summary":"自サイトで販売する場合は表記が必要。住所・電話の非公開対応は決済サービスごとに違うため確認する。","notes":"","tags":["日本","自サイト"],"rating":3,"source":"me","sample":true,"createdAt":"2026-10-05T09:00:00+09:00","updatedAt":"2026-10-05T09:00:00+09:00"},{"id":"i-sample04","title":"量産ページはスパム判定のリスク","type":"規約・注意","status":"新着","url":"","summary":"ページごとに独自データ・実際に動く機能を持たせる。同じテンプレの水増しは避ける。","notes":"","tags":["SEO"],"rating":3,"source":"me","sample":true,"createdAt":"2026-10-05T09:00:00+09:00","updatedAt":"2026-10-05T09:00:00+09:00"},{"id":"i-sample05","title":"試験系は過去問・流出問題を扱わない","type":"規約・注意","status":"新着","url":"","summary":"自分で作れる問題・法令など権利的にクリーンな素材に限定する。","notes":"","tags":["教材"],"rating":3,"source":"me","sample":true,"createdAt":"2026-10-05T09:00:00+09:00","updatedAt":"2026-10-05T09:00:00+09:00"},{"id":"i-sample06","title":"英語圏で売れた型を日本語化する","type":"アイデア","status":"新着","url":"","summary":"Etsy等で売れているテンプレを、日本の事情に合わせて作り直す。","notes":"","tags":["横展開"],"rating":2,"source":"me","sample":true,"createdAt":"2026-10-05T09:00:00+09:00","updatedAt":"2026-10-05T09:00:00+09:00"}],"log":[{"at":"2026-10-05T09:00:00+09:00","who":"system","text":"事業コンソールを初期化(サンプルデータ入り)"}],"deleted":[]}</script>
+<script>
+'use strict';
+/* =====================================================================
+   事業コンソール — data/biz.json を読み書きするGUI。
+   Claude Code も同じファイルを編集する。変更は1.5秒以内に画面へ反映される。
+   ===================================================================== */
+
+/* ---------- helpers ---------- */
+const $ = (s, el) => (el || document).querySelector(s);
+const $$ = (s, el) => [...(el || document).querySelectorAll(s)];
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const uid = p => p + '-' + Math.random().toString(36).slice(2, 10);
+const pad = n => String(n).padStart(2, '0');
+const nowIso = () => {
+  const d = new Date(), off = -d.getTimezoneOffset(), a = Math.abs(off);
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}${off >= 0 ? '+' : '-'}${pad(Math.floor(a / 60))}:${pad(a % 60)}`;
+};
+const today = () => nowIso().slice(0, 10);
+const ts = s => Date.parse(s) || 0;
+const fmtDate = s => (s || '').slice(0, 10);
+const fmtTime = s => (s || '').slice(5, 16).replace('T', ' ');
+const hhmm = ms => { const d = new Date(ms); return pad(d.getHours()) + ':' + pad(d.getMinutes()); };
+const fmtMoney = (n, cur) => (cur === 'USD' ? '$' : '¥') + Number(n || 0).toLocaleString(cur === 'USD' ? 'en-US' : 'ja-JP');
+const daysSince = s => { const t = Date.parse(s); return t ? Math.floor((Date.now() - t) / 86400000) : null; };
+const safeUrl = u => /^https?:\/\//i.test(String(u || '').trim()) ? String(u).trim() : '';
+const stars = n => '★'.repeat(n) + '☆'.repeat(3 - n);
+
+/* ---------- constants ---------- */
+const DEFAULT_STAGES = ['アイデア', '調査', '制作', '出品', '計測', '改善'];
+const STAGE_HINT = {
+  'アイデア': '候補として置いておく', '調査': '需要・競合・権利を確認', '制作': '作る・検算・画像・出品文',
+  '出品': '販売ページと決済を公開', '計測': '表示回数と売上を見る', '改善': '売れた型を磨く・横展開'
+};
+const KINDS = ['テンプレ', '計算機・ツール', 'PDF・教材', '拡張機能', '開発者向け', 'サイト・データ', 'その他'];
+const MARKETS = ['JP', 'EN', 'JP+EN'];
+const TASK_KINDS = { research: '調査', build: '制作', write: '文章', review: '検算・確認', other: 'その他' };
+const PRIORITIES = [['high', '高'], ['mid', '中'], ['low', '低']];
+const TASK_STATUS = [['todo', '未着手'], ['doing', '進行中'], ['done', '完了']];
+const ASSIGNEES = [['me', '自分'], ['claude', 'Claude Code']];
+const TOOL_CATS = ['販売先', '決済', '集客・SEO', '制作', '自動化', 'アフィリエイト', '分析', 'その他'];
+const TOOL_STATUS = ['気になる', '試用中', '採用', '不採用'];
+const INTEL_TYPES = ['アイデア', '競合・市場', 'キーワード', '規約・注意', 'ニュース', 'メモ'];
+const INTEL_STATUS = ['新着', '確認済', '活用済'];
+const COLNAME = { products: '商品', tasks: 'タスク', tools: 'ツール', intel: '情報' };
+const REFPREFIX = { products: 'product', tools: 'tool', intel: 'intel' };
+const REFCOL = { product: 'products', tool: 'tools', intel: 'intel' };
+const DATACOLS = ['products', 'tasks', 'tools', 'intel'];
+const CHECK_DEFAULT = ['需要を確認した(検索数・競合)', '他者の著作物・過去問を使っていない', '計算式・数値を検算した', '日本語版/英語版の用意', '特商法・規約・免責の表記', '出品文・タグ・サムネ', 'アフィリンクに広告表記を入れた', '判断日(出品から60日)をカレンダーに入れた'];
+const PROMPT_QUEUE = '/biz-queue';
+const PROMPT_PLAIN = 'data/biz.json を読み、tasks のうち assignee が "claude" で status が "todo" のものを、CLAUDE.md のルールに従って優先度の高い順に処理してください。';
+const VIEW_LABEL = { overview: '全体', pipeline: '工程表', products: '商品', tasks: 'タスク', tools: 'ツール探索', intel: '情報収集', claude: 'Claude連携' };
+const WHO = { me: '自分', claude: 'Claude Code', system: 'システム' };
+
+const TEMPLATES = [
+  { key: 'niche', label: 'ニッチ候補を調べる', fill: { title: 'ニッチ候補を20個挙げて需要で絞る', kind: 'research', notes: '日本語・英語の両方で、検索需要がありそうなニッチを20個挙げてください。需要の根拠・競合の強さ・作りやすさを添えて、情報収集(intel)に type=アイデア で追加し、上位5つを summary にまとめてください。' } },
+  { key: 'competitor', label: '競合と不満点を調べる', fill: { title: '競合商品と低評価レビューの傾向を調べる', kind: 'research', notes: '対象: (商品名やキーワードをここに書く)\n競合上位の商品と、低評価レビューに多い不満を調べ、差別化の案を intel に追加してください。出典URLと確認日を必ず書いてください。' } },
+  { key: 'keyword', label: 'キーワード需要を調べる', fill: { title: 'キーワードの需要と競合を調べる', kind: 'research', notes: '対象: (キーワードをここに書く)\n検索意図、競合の種類、狙えそうな切り口を整理して intel に追加してください。' } },
+  { key: 'listing', label: '出品文・タグを作る', fill: { title: '出品文・タグ・サムネ文言を作る(日英)', kind: 'write', notes: '対象の商品を ref で指定。Etsyはタイトル140文字以内・タグ13個。日本語版と英語版を、商品の folder に listing-jp.md / listing-en.md として保存し、要点を result に書いてください。' } },
+  { key: 'tools', label: 'ツール候補を探す', fill: { title: 'ツール候補を5つ探して比較する', kind: 'research', notes: '目的: (やりたいことをここに書く)\n候補を5つ、料金・手数料・規約上の注意・代替を最新情報で確認し、tools に status=気になる で追加してください。出典URLを notes に書いてください。' } },
+  { key: 'policy', label: '規約・ルールを確認する', fill: { title: '販売先・アフィリエイトの規約と注意点を確認する', kind: 'research', notes: 'Etsy / Gumroad / BOOTH / 各ASP の最新の規約から、出品・広告表記・AI利用の開示に関する注意点を調べ、intel に type=規約・注意 で追加してください。確認日と出典URLを必ず書いてください。' } },
+  { key: 'factcheck', label: '計算・数値を検算する', fill: { title: '計算式・数値を検算する', kind: 'review', notes: '対象の商品を ref で指定。税率・単位・計算式を、公的な情報と電卓代わりのコード実行で検算し、誤りがあれば修正案を result に書いてください。' } },
+  { key: 'build', label: '商品の下書きを作る', fill: { title: '商品の最初の版を作る', kind: 'build', notes: '対象の商品を ref で指定。products/<フォルダ名>/ に成果物を作り、product.folder にパスを記録、チェックリストの進み具合を更新してください。' } },
+  { key: 'weekly', label: '週次レポートを作る', fill: { title: '週次レポートを作る', kind: 'write', notes: 'biz-weekly-report の手順で reports/ に保存し、判断が必要な商品と次の一手を result に3つ書いてください。' } }
+];
+
+/* ---------- state ---------- */
+const S = {
+  data: null, view: 'overview', drawer: null, modal: null,
+  dir: null, fh: null, dirName: '', pendingDir: null, conn: 'demo', err: '',
+  lastMod: 0, dirty: false, saving: false, again: false, rev: 0, savedAt: 0, poll: null, bad: 0,
+  colMenu: false, cols: null,
+  f: { pq: '', pstage: '', pmarket: '', pkind: '', showRetired: false, psort: { k: 'stage', dir: -1 }, tassignee: '', tq: '', tcat: '', tstat: '', iq: '', itype: '', istat: '' }
+};
+const D = () => S.data;
+const stages = () => D().meta.stages;
+const byId = (col, id) => D()[col].find(x => x.id === id);
+const titleOf = it => it.name || it.title || '';
+
+/* ---------- data: normalize / merge ---------- */
+function normalize(d) {
+  d = d && typeof d === 'object' ? d : {};
+  if (!d.schema) d.schema = 1;
+  d.meta = Object.assign({ name: '事業コンソール', stages: [...DEFAULT_STAGES], decisionDays: 60 }, d.meta || {});
+  if (!Array.isArray(d.meta.stages) || !d.meta.stages.length) d.meta.stages = [...DEFAULT_STAGES];
+  ['products', 'tasks', 'tools', 'intel', 'log', 'deleted'].forEach(c => { if (!Array.isArray(d[c])) d[c] = []; });
+  const fix = (arr, p) => arr.forEach(x => {
+    if (!x.id) x.id = uid(p);
+    if (!x.updatedAt) x.updatedAt = x.createdAt || nowIso();
+    if (!x.createdAt) x.createdAt = x.updatedAt;
+  });
+  fix(d.products, 'p'); fix(d.tasks, 't'); fix(d.tools, 'k'); fix(d.intel, 'i');
+  d.products.forEach(p => {
+    if (!Array.isArray(p.checklist)) p.checklist = [];
+    p.sales = Number(p.sales) || 0; p.revenue = Number(p.revenue) || 0; p.price = Number(p.price) || 0;
+    if (!p.currency) p.currency = p.market === 'EN' ? 'USD' : 'JPY';
+    if (!p.stage) p.stage = d.meta.stages[0];
+    ['name', 'kind', 'market', 'channel', 'url', 'listedAt', 'niche', 'folder', 'notes'].forEach(k => { if (p[k] == null) p[k] = ''; });
+  });
+  d.tasks.forEach(t => {
+    if (!t.status) t.status = 'todo'; if (!t.assignee) t.assignee = 'me';
+    if (!t.priority) t.priority = 'mid'; if (!t.kind) t.kind = 'other';
+    ['due', 'ref', 'notes', 'result', 'title'].forEach(k => { if (t[k] == null) t[k] = ''; });
+  });
+  d.tools.forEach(k => {
+    if (!k.status) k.status = '気になる'; if (!k.category) k.category = 'その他';
+    ['url', 'cost', 'pros', 'cons', 'affiliate', 'notes', 'name'].forEach(f => { if (k[f] == null) k[f] = ''; });
+  });
+  d.intel.forEach(i => {
+    if (!Array.isArray(i.tags)) i.tags = [];
+    if (!i.status) i.status = '新着'; if (!i.type) i.type = 'メモ'; if (!i.source) i.source = 'me';
+    i.rating = Number(i.rating) || 0;
+    ['url', 'summary', 'notes', 'title'].forEach(f => { if (i[f] == null) i[f] = ''; });
+  });
+  return d;
+}
+
+function merge(local, remote) {
+  const out = JSON.parse(JSON.stringify(remote));
+  const tomb = new Map();
+  [...(local.deleted || []), ...(remote.deleted || [])].forEach(x => tomb.set(x.id, x));
+  out.deleted = [...tomb.values()].slice(-300);
+  DATACOLS.forEach(c => {
+    const m = new Map((remote[c] || []).map(x => [x.id, x]));
+    (local[c] || []).forEach(x => {
+      const r = m.get(x.id);
+      if (!r || ts(x.updatedAt) > ts(r.updatedAt)) m.set(x.id, JSON.parse(JSON.stringify(x)));
+    });
+    out[c] = [...m.values()].filter(x => !tomb.has(x.id));
+  });
+  const seen = new Set();
+  out.log = [...(remote.log || []), ...(local.log || [])].filter(l => {
+    const k = l.at + '|' + l.who + '|' + l.text; if (seen.has(k)) return false; seen.add(k); return true;
+  }).sort((a, b) => ts(a.at) - ts(b.at)).slice(-300);
+  return out;
+}
+
+/* ---------- persistence ---------- */
+let _idb;
+function idb() {
+  if (_idb) return _idb;
+  _idb = new Promise((res, rej) => {
+    const r = indexedDB.open('biz-console', 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('kv');
+    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+  });
+  return _idb;
+}
+async function idbGet(k) { const db = await idb(); return new Promise((res, rej) => { const q = db.transaction('kv').objectStore('kv').get(k); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); }); }
+async function idbSet(k, v) { const db = await idb(); return new Promise((res, rej) => { const t = db.transaction('kv', 'readwrite'); t.objectStore('kv').put(v, k); t.oncomplete = res; t.onerror = () => rej(t.error); }); }
+async function idbDel(k) { const db = await idb(); return new Promise((res, rej) => { const t = db.transaction('kv', 'readwrite'); t.objectStore('kv').delete(k); t.oncomplete = res; t.onerror = () => rej(t.error); }); }
+
+function seedData() { return normalize(JSON.parse($('#seed').textContent)); }
+function loadDemo() {
+  try { const s = localStorage.getItem('biz-demo'); if (s) return normalize(JSON.parse(s)); } catch (e) { /* ignore */ }
+  return seedData();
+}
+function loadCols() {
+  const def = { name: 1, stage: 1, kind: 1, market: 1, channel: 1, price: 1, sales: 1, revenue: 1 };
+  try { const s = localStorage.getItem('biz-cols'); if (s) return Object.assign(def, JSON.parse(s)); } catch (e) { /* ignore */ }
+  return def;
+}
+
+async function writeNow() {
+  const w = await S.fh.createWritable();
+  await w.write(JSON.stringify(S.data, null, 2) + '\n');
+  await w.close();
+  const f = await S.fh.getFile();
+  S.lastMod = f.lastModified; S.savedAt = Date.now();
+}
+
+async function useDir(dir) {
+  const dataDir = await dir.getDirectoryHandle('data', { create: true });
+  const fh = await dataDir.getFileHandle('biz.json', { create: true });
+  const f = await fh.getFile();
+  const text = await f.text();
+  S.dir = dir; S.fh = fh; S.dirName = dir.name; S.lastMod = f.lastModified; S.pendingDir = null; S.bad = 0;
+  if (text.trim()) {
+    try { S.data = normalize(JSON.parse(text)); S.conn = 'connected'; S.err = ''; }
+    catch (e) { S.conn = 'error'; S.err = badJsonMessage(); if (!S.data) S.data = seedData(); }
+  } else {
+    S.conn = 'connected'; S.err = '';
+    if (!S.data) S.data = seedData();
+    await writeNow();
+  }
+  startPolling();
+  renderAll();
+}
+const badJsonMessage = () => 'data/biz.json のJSONが壊れています。Claude Codeに「data/biz.json のJSONを修復して」と頼むか、ファイルを確認してください。直るとこの画面が自動で復帰します。';
+
+async function connectFolder() {
+  if (!window.showDirectoryPicker) { toast('このブラウザは非対応です。ChromeかEdgeで開いてください'); return; }
+  try {
+    const dir = await window.showDirectoryPicker({ mode: 'readwrite' });
+    await useDir(dir);
+    await idbSet('dir', dir);
+    toast('接続しました: ' + dir.name + '/data/biz.json');
+  } catch (e) { if (e && e.name !== 'AbortError') toast('接続できませんでした: ' + e.message); }
+}
+async function reconnectFolder() {
+  try {
+    const p = await S.pendingDir.requestPermission({ mode: 'readwrite' });
+    if (p !== 'granted') { toast('許可されませんでした'); return; }
+    await useDir(S.pendingDir);
+    toast('再接続しました');
+  } catch (e) { toast('再接続できませんでした: ' + e.message); }
+}
+async function forgetFolder() {
+  if (!confirm('フォルダとの接続を解除します。データはフォルダに残ります。よろしいですか?')) return;
+  if (S.poll) { clearInterval(S.poll); S.poll = null; }
+  S.fh = null; S.dir = null; S.conn = 'demo';
+  try { await idbDel('dir'); } catch (e) { /* ignore */ }
+  renderAll();
+}
+
+let _saveTimer;
+function scheduleSave() { clearTimeout(_saveTimer); _saveTimer = setTimeout(save, 300); }
+async function save() {
+  if (S.saving) { S.again = true; return; }
+  if (!S.fh) {
+    try { localStorage.setItem('biz-demo', JSON.stringify(S.data)); } catch (e) { /* ignore */ }
+    S.dirty = false; S.savedAt = Date.now(); renderTop(); return;
+  }
+  if (S.conn !== 'connected') return;
+  S.saving = true;
+  const rev = S.rev; let merged = false;
+  try {
+    const f = await S.fh.getFile();
+    if (f.lastModified !== S.lastMod) {
+      let remote;
+      try { remote = normalize(JSON.parse(await f.text())); }
+      catch (e) { S.saving = false; setTimeout(save, 1200); return; }
+      S.data = merge(S.data, remote); merged = true;
+    }
+    await writeNow();
+    if (S.rev === rev) S.dirty = false; else S.again = true;
+  } catch (e) { toast('保存に失敗しました: ' + e.message); }
+  S.saving = false;
+  if (merged) renderAll({ keepDrawer: editingInDrawer() }); else renderTop();
+  if (S.again) { S.again = false; scheduleSave(); }
+}
+
+function startPolling() { if (!S.poll) S.poll = setInterval(pollOnce, 1500); }
+async function pollOnce() {
+  if (!S.fh || S.saving) return;
+  try {
+    const f = await S.fh.getFile();
+    if (f.lastModified === S.lastMod) return;
+    let remote;
+    try { remote = normalize(JSON.parse(await f.text())); }
+    catch (e) {
+      if (++S.bad >= 2 && S.conn === 'connected') { S.conn = 'error'; S.err = badJsonMessage(); renderTop(); renderBanner(); }
+      return;
+    }
+    S.bad = 0; S.conn = 'connected'; S.err = ''; S.lastMod = f.lastModified;
+    const before = JSON.stringify(S.data);
+    if (S.dirty) { S.data = merge(S.data, remote); scheduleSave(); } else S.data = remote;
+    if (JSON.stringify(S.data) !== before) { renderAll({ keepDrawer: editingInDrawer() }); toast('ファイルの更新を画面に反映しました'); }
+    else { renderTop(); renderBanner(); }
+  } catch (e) {
+    if (e && (e.name === 'NotAllowedError' || e.name === 'NotFoundError' || e.name === 'SecurityError')) {
+      clearInterval(S.poll); S.poll = null; S.pendingDir = S.dir; S.fh = null; S.conn = 'needs-permission';
+      renderTop(); renderBanner();
+    }
+  }
+}
+function editingInDrawer() {
+  const a = document.activeElement;
+  return !!(a && a.closest && (a.closest('#drawer') || a.closest('#modal-root')) && /INPUT|TEXTAREA|SELECT/.test(a.tagName));
+}
+
+/* ---------- mutations ---------- */
+function logAdd(text, who) {
+  D().log.push({ at: nowIso(), who: who || 'me', text });
+  if (D().log.length > 300) D().log.splice(0, D().log.length - 300);
+}
+const touchItem = it => { it.updatedAt = nowIso(); };
+function commit(opts) {
+  D().meta.updatedAt = nowIso(); S.rev++; S.dirty = true; scheduleSave(); renderAll(opts);
+}
+function removeItem(col, id) {
+  const arr = D()[col], i = arr.findIndex(x => x.id === id);
+  if (i < 0) return;
+  const it = arr.splice(i, 1)[0];
+  D().deleted.push({ id, at: nowIso() });
+  logAdd(`${COLNAME[col]}「${titleOf(it)}」を削除`);
+  if (S.drawer && S.drawer.id === id) S.drawer = null;
+  commit();
+}
+function needsDecision(p) {
+  if (p.stage === '撤退') return false;
+  const d = daysSince(p.listedAt);
+  return d != null && d >= D().meta.decisionDays && !(p.sales > 0);
+}
+function setStage(p, st) {
+  if (p.stage === st) return;
+  const old = p.stage; p.stage = st; p.stageAt = today();
+  const i = stages().indexOf(st), li = stages().indexOf('出品');
+  if (li >= 0 && i >= li && !p.listedAt) p.listedAt = today();
+  touchItem(p); logAdd(`「${p.name}」: ${old} → ${st}`); commit();
+}
+function setTaskStatus(id, st) {
+  const t = byId('tasks', id); if (!t || t.status === st) return;
+  t.status = st; if (st === 'done') t.doneAt = nowIso(); else delete t.doneAt;
+  touchItem(t); logAdd(`タスク「${t.title}」→ ${(TASK_STATUS.find(x => x[0] === st) || [])[1]}`); commit();
+}
+function createTask(o) {
+  const t = Object.assign({ id: uid('t'), title: '', status: 'todo', assignee: 'me', kind: 'other', priority: 'mid', due: '', ref: '', notes: '', result: '', createdAt: nowIso(), updatedAt: nowIso() }, o);
+  D().tasks.push(t);
+  logAdd(t.assignee === 'claude' ? `Claudeへ依頼: ${t.title}` : `タスク追加: ${t.title}`);
+  commit(); return t;
+}
+function hasSample() { return DATACOLS.some(c => D()[c].some(x => x.sample)); }
+function refInfo(ref) {
+  if (!ref) return null;
+  const [t, id] = ref.split(':'), col = REFCOL[t], it = col && byId(col, id);
+  return it ? { col, id, label: COLNAME[col] + ' / ' + titleOf(it) } : null;
+}
+const refOptions = () => [['', 'なし'],
+  ...D().products.map(p => ['product:' + p.id, '商品 / ' + p.name]),
+  ...D().tools.map(k => ['tool:' + k.id, 'ツール / ' + k.name]),
+  ...D().intel.map(i => ['intel:' + i.id, '情報 / ' + i.title])];
+
+/* ---------- field rendering ---------- */
+const optList = o => (o || []).map(x => Array.isArray(x) ? x : [x, x]);
+function fieldHtml(f, v, mode) {
+  v = v == null ? '' : v;
+  const attr = mode === 'form' ? `name="${f.k}"` : `data-f="${f.k}"${f.type === 'number' || f.num ? ' data-t="number"' : ''}${f.type === 'tags' ? ' data-t="tags"' : ''}`;
+  let input;
+  if (f.type === 'select') {
+    let list = optList(f.options);
+    if (v !== '' && !list.some(([a]) => String(a) === String(v))) list = [[v, v], ...list];
+    input = `<select ${attr}>${list.map(([a, l]) => `<option value="${esc(a)}"${String(a) === String(v) ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select>`;
+  } else if (f.type === 'textarea') {
+    input = `<textarea ${attr} rows="${f.rows || 4}" placeholder="${esc(f.ph || '')}">${esc(v)}</textarea>`;
+  } else if (f.type === 'tags') {
+    input = `<input type="text" ${attr} value="${esc((v || []).join(', '))}" placeholder="カンマ区切り">`;
+  } else {
+    input = `<input type="${f.type === 'number' ? 'number' : f.type === 'date' ? 'date' : 'text'}" ${attr} value="${esc(v)}" placeholder="${esc(f.ph || '')}"${f.required ? ' required' : ''}>`;
+  }
+  return `<label class="fld${f.full ? ' full' : ''}"><span>${esc(f.l)}</span>${input}</label>`;
+}
+
+const PFIELDS = [
+  { k: 'name', l: '商品名', full: 1 }, { k: 'kind', l: '種類', type: 'select', options: KINDS }, { k: 'market', l: '市場', type: 'select', options: MARKETS },
+  { k: 'channel', l: '販売先', ph: 'Etsy / BOOTH / 自サイト' }, { k: 'niche', l: 'ニッチ・キーワード' },
+  { k: 'price', l: '価格', type: 'number' }, { k: 'currency', l: '通貨', type: 'select', options: ['JPY', 'USD'] },
+  { k: 'listedAt', l: '出品日', type: 'date' }, { k: 'sales', l: '販売数', type: 'number' },
+  { k: 'revenue', l: '累計売上', type: 'number' }, { k: 'folder', l: '成果物フォルダ', ph: 'products/slug' },
+  { k: 'url', l: '販売ページURL', full: 1 }, { k: 'notes', l: 'メモ', type: 'textarea', full: 1, rows: 4 }
+];
+const tfields = () => [
+  { k: 'title', l: 'タイトル', full: 1 }, { k: 'status', l: '状態', type: 'select', options: TASK_STATUS }, { k: 'assignee', l: '担当', type: 'select', options: ASSIGNEES },
+  { k: 'kind', l: '種類', type: 'select', options: Object.entries(TASK_KINDS) }, { k: 'priority', l: '優先度', type: 'select', options: PRIORITIES },
+  { k: 'due', l: '期限', type: 'date' }, { k: 'ref', l: '関連', type: 'select', options: refOptions() },
+  { k: 'notes', l: '指示・メモ(Claudeへの指示はここに書く)', type: 'textarea', full: 1, rows: 5 },
+  { k: 'result', l: '結果(Claude Codeが書き戻す)', type: 'textarea', full: 1, rows: 6 }
+];
+const KFIELDS = [
+  { k: 'name', l: 'ツール名', full: 1 }, { k: 'category', l: 'カテゴリ', type: 'select', options: TOOL_CATS }, { k: 'status', l: '状態', type: 'select', options: TOOL_STATUS },
+  { k: 'url', l: 'URL', full: 1 }, { k: 'cost', l: '料金・手数料', full: 1 },
+  { k: 'pros', l: '良い点', type: 'textarea', full: 1, rows: 2 }, { k: 'cons', l: '注意点', type: 'textarea', full: 1, rows: 2 },
+  { k: 'affiliate', l: 'アフィリエイト情報', full: 1 }, { k: 'notes', l: 'メモ', type: 'textarea', full: 1, rows: 4 }
+];
+const IFIELDS = [
+  { k: 'title', l: 'タイトル', full: 1 }, { k: 'type', l: '種類', type: 'select', options: INTEL_TYPES }, { k: 'status', l: '状態', type: 'select', options: INTEL_STATUS },
+  { k: 'rating', l: '使える度', type: 'select', num: 1, options: [[0, '未評価'], [1, '低'], [2, '中'], [3, '高']] }, { k: 'source', l: '出どころ', type: 'select', options: ASSIGNEES },
+  { k: 'url', l: 'URL', full: 1 }, { k: 'tags', l: 'タグ', type: 'tags', full: 1 },
+  { k: 'summary', l: '要点', type: 'textarea', full: 1, rows: 5 }, { k: 'notes', l: 'メモ', type: 'textarea', full: 1, rows: 3 }
+];
+
+/* ---------- views ---------- */
+const stagePill = p => p.stage === '撤退' ? '<span class="pill">撤退</span>' : `<span class="pill ${needsDecision(p) ? 'red' : 'indigo'}">${esc(p.stage)}</span>`;
+const openTasksOf = (prefix, id) => D().tasks.filter(t => t.ref === prefix + ':' + id && t.status !== 'done');
+const claudeQueue = st => D().tasks.filter(t => t.assignee === 'claude' && t.status === st);
+const copyBtn = (text, label, cls) => `<button class="btn ${cls || 'sm'}" data-act="copy" data-text="${esc(text)}">${esc(label)}</button>`;
+const prioRank = { high: 0, mid: 1, low: 2 };
+
+function dueMark(t) {
+  if (!t.due) return '';
+  const late = t.status !== 'done' && t.due < today();
+  return `<span class="${late ? 'pill red' : ''}">${late ? '期限切れ ' : '期限 '}${esc(t.due.slice(5))}</span>`;
+}
+
+function vOverview() {
+  const P = D().products, act = P.filter(p => p.stage !== '撤退');
+  const li = stages().indexOf('出品');
+  const listed = li < 0 ? 0 : act.filter(p => stages().indexOf(p.stage) >= li).length;
+  const rev = {}; P.forEach(p => { if (p.revenue) rev[p.currency] = (rev[p.currency] || 0) + p.revenue; });
+  const revText = Object.keys(rev).length ? Object.entries(rev).map(([c, n]) => fmtMoney(n, c)).join(' + ') : '¥0';
+  const decide = P.filter(needsDecision), cq = claudeQueue('todo').length, cd = claudeQueue('doing').length;
+  const flow = stages().map((s, i) => {
+    const n = act.filter(p => p.stage === s).length;
+    return `<button type="button" data-n="${n}" data-act="goStage" data-stage="${esc(s)}" title="${esc(STAGE_HINT[s] || '')}"><b>${n}</b><span>${esc(s)}</span></button>`;
+  }).join('');
+  const next = D().tasks.filter(t => t.status !== 'done').sort((a, b) => prioRank[a.priority] - prioRank[b.priority] || (a.due || '9').localeCompare(b.due || '9')).slice(0, 8);
+  const recent = D().log.slice(-8).reverse();
+  return `
+  <div class="figures">
+    <div><b>${act.length}</b><span>稼働中の商品(撤退を除く)</span></div>
+    <div><b>${listed}</b><span>出品以降の商品</span></div>
+    <div><b style="font-size:${revText.length > 12 ? 17 : 24}px">${esc(revText)}</b><span>累計売上</span></div>
+    <div class="${decide.length ? 'warnfig' : ''}"><b>${decide.length}</b><span>判断日を過ぎた商品</span></div>
+    <div class="claudefig"><b>${cq}</b><span>Claude Codeの待機中${cd ? `(作業中 ${cd})` : ''}</span></div>
+  </div>
+  <section class="panel" style="margin-bottom:14px"><h2>工程ごとの商品数 <small>押すと商品一覧で絞り込みます</small></h2><div class="flow">${flow}</div></section>
+  <div class="two">
+    <section class="panel"><h2>次にやること</h2>
+      ${next.length ? `<ul class="list">${next.map(t => `<li><input type="checkbox" data-act="toggleDone" data-id="${t.id}" aria-label="完了にする">
+        <div class="grow"><button class="link t" data-act="open" data-col="tasks" data-id="${t.id}">${esc(t.title)}</button>
+        <small>${t.assignee === 'claude' ? '<span class="pill amber">Claude</span> ' : ''}${esc(TASK_KINDS[t.kind] || '')} ${dueMark(t)}</small></div></li>`).join('')}</ul>` : '<p class="empty">未完のタスクはありません。</p>'}
+      <p style="margin:10px 0 0"><button class="btn sm" data-act="nav" data-v="tasks">タスクをすべて見る</button></p>
+    </section>
+    <div class="stack">
+      <section class="panel"><h2>Claude Codeに渡す</h2>
+        <p style="margin:0 0 6px">待機 <b>${cq}</b> 件 / 作業中 <b>${cd}</b> 件 / 完了 <b>${claudeQueue('done').length}</b> 件</p>
+        <div class="cmd"><code>${PROMPT_QUEUE}</code>${copyBtn(PROMPT_QUEUE, 'コピー')}</div>
+        <small>Claude Codeにこれを貼ると、待機中の依頼を順に処理して、結果をこの画面に書き戻します。</small>
+        <p style="margin:10px 0 0"><button class="btn claude sm" data-act="askClaude" data-ref="">依頼を追加</button> <button class="btn sm" data-act="nav" data-v="claude">連携の詳細</button></p>
+      </section>
+      <section class="panel"><h2>判断が必要な商品</h2>
+        ${decide.length ? `<ul class="list">${decide.map(p => `<li><div class="grow"><button class="link t" data-act="open" data-col="products" data-id="${p.id}">${esc(p.name)}</button><small>出品から${daysSince(p.listedAt)}日・販売0(基準 ${D().meta.decisionDays}日)</small></div><button class="btn sm danger" data-act="retire" data-id="${p.id}">撤退にする</button></li>`).join('')}</ul>` : '<p class="empty">いまはありません。</p>'}
+      </section>
+    </div>
+  </div>
+  <section class="panel"><h2>最近の動き</h2>
+    ${recent.length ? `<div class="log">${recent.map(l => `<div><time>${esc(fmtTime(l.at))}</time><span class="pill ${l.who === 'claude' ? 'amber' : ''}">${esc(WHO[l.who] || l.who)}</span><span>${esc(l.text)}</span></div>`).join('')}</div>` : '<p class="empty">まだ動きはありません。</p>'}
+  </section>`;
+}
+
+function stateText(p) {
+  if (p.stage === '撤退') return '<span class="muted">撤退</span>';
+  const d = daysSince(p.listedAt);
+  if (needsDecision(p)) return `<b style="color:var(--red)">判断日です</b><br><small>出品から${d}日・販売0</small>`;
+  if (d != null) return `出品から${d}日<br><small>販売 ${p.sales} / ${fmtMoney(p.revenue, p.currency)}</small>`;
+  return '<small class="muted">未出品</small>';
+}
+function vPipeline() {
+  const st = stages(), f = S.f;
+  let list = D().products.filter(p => (f.showRetired || p.stage !== '撤退') && (!f.pmarket || p.market === f.pmarket));
+  const rank = p => p.stage === '撤退' ? -1 : st.indexOf(p.stage);
+  list = list.sort((a, b) => rank(b) - rank(a) || a.name.localeCompare(b.name, 'ja'));
+  const head = `<tr><th class="who">商品</th>${st.map(s => `<th>${esc(s)}</th>`).join('')}<th>状態</th></tr>`;
+  const rows = list.map(p => {
+    const idx = st.indexOf(p.stage), late = needsDecision(p);
+    const cells = st.map((s, i) => {
+      const cls = p.stage === '撤退' ? '' : i < idx ? 'done' : i === idx ? 'now' + (late ? ' late' : '') : '';
+      const dd = i === idx ? daysSince(p.stageAt) : null;
+      const label = i < idx ? '✓' : i === idx ? (dd != null ? dd + '日' : '●') : '';
+      return `<td class="cellc"><button class="cell ${cls}" data-act="setStage" data-id="${p.id}" data-stage="${esc(s)}" aria-label="${esc(p.name)}を${esc(s)}にする">${label}</button></td>`;
+    }).join('');
+    return `<tr class="${p.stage === '撤退' ? 'retired' : ''}"><td class="who"><button class="link" data-act="open" data-col="products" data-id="${p.id}">${esc(p.name)}</button><br><small>${esc(p.market)} · ${esc(p.kind)}${p.channel ? ' · ' + esc(p.channel) : ''}</small></td>${cells}<td class="st">${stateText(p)}</td></tr>`;
+  }).join('');
+  const legend = `<div class="legend">${st.map(s => `<div><b>${esc(s)}</b>${esc(STAGE_HINT[s] || '')}</div>`).join('')}</div>`;
+  const tb = `<div class="toolbar"><div class="chips">${[['', 'すべて'], ['JP', 'JP'], ['EN', 'EN']].map(([v, l]) => `<button class="chip" aria-pressed="${f.pmarket === v}" data-act="filter" data-k="pmarket" data-v="${v}">${l}</button>`).join('')}</div>
+    <button class="chip" aria-pressed="${f.showRetired}" data-act="toggleRetired">撤退を表示</button><span class="grow"></span>
+    <small>マス目を押すと、その工程に移ります。</small><button class="btn primary" data-act="addProduct">商品を追加</button></div>`;
+  return tb + legend + (list.length ? `<div class="tablewrap"><table class="matrix"><thead>${head}</thead><tbody>${rows}</tbody></table></div>` : '<p class="empty">商品がありません。「商品を追加」から始めましょう。</p>');
+}
+
+const COLS = [
+  { k: 'name', l: '商品名', always: 1, f: p => `<button class="link" data-act="open" data-col="products" data-id="${p.id}">${esc(p.name)}</button>` },
+  { k: 'stage', l: '段階', f: stagePill, sort: p => p.stage === '撤退' ? -1 : stages().indexOf(p.stage) },
+  { k: 'kind', l: '種類', f: p => esc(p.kind) }, { k: 'market', l: '市場', f: p => esc(p.market) }, { k: 'channel', l: '販売先', f: p => esc(p.channel) },
+  { k: 'price', l: '価格', num: 1, f: p => p.price ? fmtMoney(p.price, p.currency) : '' },
+  { k: 'listedAt', l: '出品日', f: p => esc(p.listedAt) },
+  { k: 'sales', l: '販売数', num: 1, f: p => p.sales }, { k: 'revenue', l: '売上', num: 1, f: p => p.revenue ? fmtMoney(p.revenue, p.currency) : '' },
+  { k: 'niche', l: 'ニッチ・KW', f: p => esc(p.niche) }, { k: 'folder', l: 'フォルダ', f: p => esc(p.folder) },
+  { k: 'tasks', l: '未完タスク', num: 1, f: p => openTasksOf('product', p.id).length || '', sort: p => openTasksOf('product', p.id).length },
+  { k: 'updatedAt', l: '更新日', f: p => esc(fmtDate(p.updatedAt)), sort: p => ts(p.updatedAt) }
+];
+function vProducts() {
+  const f = S.f, q = f.pq.toLowerCase();
+  let list = D().products.filter(p =>
+    (f.showRetired || f.pstage === '撤退' || p.stage !== '撤退') && (!f.pstage || p.stage === f.pstage) && (!f.pmarket || p.market === f.pmarket) && (!f.pkind || p.kind === f.pkind) &&
+    (!q || `${p.name} ${p.niche} ${p.channel} ${p.notes}`.toLowerCase().includes(q)));
+  const sc = COLS.find(c => c.k === f.psort.k) || COLS[1];
+  const key = p => sc.sort ? sc.sort(p) : p[sc.k];
+  list = list.sort((a, b) => { const x = key(a), y = key(b); const r = typeof x === 'number' && typeof y === 'number' ? x - y : String(x ?? '').localeCompare(String(y ?? ''), 'ja'); return r * f.psort.dir || a.name.localeCompare(b.name, 'ja'); });
+  const vis = COLS.filter(c => c.always || S.cols[c.k]);
+  const sel = (k, label, opts) => `<select data-filter="${k}" data-keep="${k}" aria-label="${label}"><option value="">${label}: すべて</option>${opts.map(o => `<option${f[k] === o ? ' selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
+  const tb = `<div class="toolbar"><input type="search" data-filter="pq" data-keep="pq" value="${esc(f.pq)}" placeholder="商品名・キーワードで検索" aria-label="検索">
+    ${sel('pstage', '段階', [...stages(), '撤退'])}${sel('pmarket', '市場', MARKETS)}${sel('pkind', '種類', KINDS)}
+    <span class="grow"></span>
+    <div class="popwrap"><button class="btn" data-act="colMenu" aria-expanded="${S.colMenu}">表示する列</button>${S.colMenu ? `<div class="pop">${COLS.filter(c => !c.always).map(c => `<label><input type="checkbox" data-col="${c.k}"${S.cols[c.k] ? ' checked' : ''}>${esc(c.l)}</label>`).join('')}</div>` : ''}</div>
+    <button class="btn primary" data-act="addProduct">商品を追加</button></div>`;
+  const head = vis.map(c => `<th class="${c.num ? 'num' : ''}"><button data-act="sort" data-k="${c.k}">${esc(c.l)}${f.psort.k === c.k ? (f.psort.dir > 0 ? ' ▲' : ' ▼') : ''}</button></th>`).join('');
+  const rows = list.map(p => `<tr class="${p.stage === '撤退' ? 'retired' : ''}">${vis.map(c => `<td class="${c.num ? 'num' : ''}">${c.f(p)}</td>`).join('')}</tr>`).join('');
+  return tb + `<p class="sm" style="margin:-4px 0 8px">${list.length} 件を表示 · 行の商品名を押すと詳細を編集できます · <button class="chip" aria-pressed="${f.showRetired}" data-act="toggleRetired">撤退を表示</button></p>` +
+    (list.length ? `<div class="tablewrap"><table><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table></div>` : '<p class="empty">条件に合う商品がありません。</p>');
+}
+
+function taskCard(t) {
+  const r = refInfo(t.ref);
+  return `<div class="card ${t.priority} ${t.status === 'done' ? 'done' : ''}" draggable="true" data-id="${t.id}">
+    <button class="link ct" data-act="open" data-col="tasks" data-id="${t.id}">${esc(t.title)}</button>
+    <div class="meta">${t.assignee === 'claude' ? '<span class="pill amber">Claude</span>' : '<span class="pill">自分</span>'}<span>${esc(TASK_KINDS[t.kind] || t.kind)}</span>${dueMark(t)}${r ? `<span>${esc(r.label)}</span>` : ''}</div>
+    ${t.result ? `<div class="result">${esc(t.result)}</div>` : ''}</div>`;
+}
+function vTasks() {
+  const as = S.f.tassignee, list = D().tasks.filter(t => !as || t.assignee === as);
+  const tb = `<div class="toolbar"><div class="chips">${[['', 'すべて'], ['me', '自分'], ['claude', 'Claude Code']].map(([v, l]) => `<button class="chip" aria-pressed="${as === v}" data-act="filter" data-k="tassignee" data-v="${v}">${l}</button>`).join('')}</div><span class="grow"></span><small>カードをドラッグして状態を変えられます。</small><button class="btn primary" data-act="addTask">タスクを追加</button></div>`;
+  const cols = TASK_STATUS.map(([st, label]) => {
+    let items = list.filter(t => t.status === st);
+    items = st === 'done' ? items.sort((a, b) => ts(b.doneAt || b.updatedAt) - ts(a.doneAt || a.updatedAt)).slice(0, 30)
+      : items.sort((a, b) => prioRank[a.priority] - prioRank[b.priority] || (a.due || '9').localeCompare(b.due || '9'));
+    return `<section class="col" data-drop="${st}"><h2>${label}<span class="muted">${items.length}</span></h2>${items.map(taskCard).join('') || '<p class="sm">なし</p>'}</section>`;
+  }).join('');
+  return tb + `<div class="board">${cols}</div>`;
+}
+
+function vTools() {
+  const f = S.f, q = f.tq.toLowerCase(), order = { '採用': 0, '試用中': 1, '気になる': 2, '不採用': 3 };
+  const list = D().tools.filter(k => (!f.tcat || k.category === f.tcat) && (!f.tstat || k.status === f.tstat) && (!q || `${k.name} ${k.notes} ${k.pros} ${k.cons}`.toLowerCase().includes(q)))
+    .sort((a, b) => (order[a.status] ?? 9) - (order[b.status] ?? 9) || a.name.localeCompare(b.name, 'ja'));
+  const chips = (k, all, cur) => `<div class="chips">${['', ...all].map(v => `<button class="chip" aria-pressed="${cur === v}" data-act="filter" data-k="${k}" data-v="${esc(v)}">${v || 'すべて'}</button>`).join('')}</div>`;
+  const tb = `<div class="toolbar"><input type="search" data-filter="tq" data-keep="tq" value="${esc(f.tq)}" placeholder="ツールを検索" aria-label="検索"><span class="grow"></span>
+    <button class="btn claude" data-act="scoutTools">Claudeにツールを探させる</button><button class="btn primary" data-act="addTool">ツールを追加</button></div>
+    <div class="toolbar">${chips('tcat', TOOL_CATS, f.tcat)}</div><div class="toolbar">${chips('tstat', TOOL_STATUS, f.tstat)}</div>`;
+  const cards = list.map(k => `<article class="tool"><header><button class="link" data-act="open" data-col="tools" data-id="${k.id}">${esc(k.name)}</button>
+      <span class="pill ${k.status === '採用' ? 'green' : k.status === '試用中' ? 'indigo' : k.status === '不採用' ? '' : 'amber'}">${esc(k.status)}</span></header>
+      <div><span class="pill">${esc(k.category)}</span></div>${k.notes ? `<p>${esc(k.notes)}</p>` : ''}
+      <footer><span>${esc(k.cost)}</span>${safeUrl(k.url) ? `<a href="${esc(safeUrl(k.url))}" target="_blank" rel="noopener noreferrer">開く</a>` : ''}</footer></article>`).join('');
+  return tb + (list.length ? `<div class="cards">${cards}</div>` : '<p class="empty">条件に合うツールがありません。</p>');
+}
+
+function vIntel() {
+  const f = S.f, q = f.iq.toLowerCase(), newN = D().intel.filter(i => i.status === '新着').length;
+  const list = D().intel.filter(i => (!f.itype || i.type === f.itype) && (!f.istat || i.status === f.istat) && (!q || `${i.title} ${i.summary} ${i.tags.join(' ')}`.toLowerCase().includes(q)))
+    .sort((a, b) => ts(b.createdAt) - ts(a.createdAt));
+  const chips = (k, all, cur) => `<div class="chips">${['', ...all].map(v => `<button class="chip" aria-pressed="${cur === v}" data-act="filter" data-k="${k}" data-v="${esc(v)}">${v || 'すべて'}</button>`).join('')}</div>`;
+  const cap = `<div class="capture"><input type="text" data-capture placeholder="URLやメモを貼って Enter。あとでClaudeに整理させられます" aria-label="情報を追加">
+    <select data-capture-type aria-label="種類">${INTEL_TYPES.map(t => `<option>${esc(t)}</option>`).join('')}</select><button class="btn primary" data-act="capture">保存</button></div>`;
+  const tb = `<div class="toolbar"><input type="search" data-filter="iq" data-keep="iq" value="${esc(f.iq)}" placeholder="情報を検索" aria-label="検索"><span class="grow"></span>
+    <button class="btn claude" data-act="triageIntel"${newN ? '' : ' disabled'}>新着 ${newN} 件をClaudeに整理させる</button><button class="btn claude" data-act="askClaude" data-ref="" data-tpl="niche">Claudeに調べさせる</button></div>
+    <div class="toolbar">${chips('itype', INTEL_TYPES, f.itype)}</div><div class="toolbar">${chips('istat', INTEL_STATUS, f.istat)}</div>`;
+  const rows = list.map(i => `<div class="row"><div><span class="pill ${i.type === '規約・注意' ? 'red' : 'indigo'}">${esc(i.type)}</span></div>
+      <div><button class="link" data-act="open" data-col="intel" data-id="${i.id}">${esc(i.title)}</button>${i.summary ? `<p>${esc(i.summary)}</p>` : ''}<div>${i.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div></div>
+      <div class="side"><span class="rate" title="使える度">${stars(i.rating)}</span><span>${esc(i.status)}</span><span>${i.source === 'claude' ? '<span class="pill amber">Claude</span>' : ''} ${esc(fmtDate(i.createdAt))}</span></div></div>`).join('');
+  return cap + tb + (list.length ? `<div class="rows">${rows}</div>` : '<p class="empty">情報がありません。上の欄にURLやメモを貼ってみましょう。</p>');
+}
+
+function vClaude() {
+  const q = { todo: claudeQueue('todo'), doing: claudeQueue('doing'), done: claudeQueue('done').sort((a, b) => ts(b.doneAt || b.updatedAt) - ts(a.doneAt || a.updatedAt)).slice(0, 5) };
+  const item = t => `<li><div class="grow"><button class="link t" data-act="open" data-col="tasks" data-id="${t.id}">${esc(t.title)}</button><small>${esc(TASK_KINDS[t.kind] || '')} ${dueMark(t)}${t.result ? ' · 結果あり' : ''}</small></div>${t.status === 'todo' ? copyBtn(PROMPT_QUEUE + ' ' + t.id, 'この1件だけ') : ''}</li>`;
+  const grp = (label, arr, cls) => `<h3 style="margin:12px 0 4px;font-size:13px"><span class="pill ${cls}">${label}</span> ${arr.length}</h3>${arr.length ? `<ul class="list">${arr.map(item).join('')}</ul>` : '<small class="muted">なし</small>'}`;
+  const logs = D().log.slice(-40).reverse();
+  return `
+  <div class="two">
+    <section class="panel"><h2>つなぎ方</h2>
+      <ol class="steps">
+        <li>「フォルダを接続」で、この画面のファイル(index.html)があるフォルダを選ぶ。</li>
+        <li>VS Code でも同じフォルダを開いて Claude Code を使う。</li>
+        <li>この画面で「Claudeに依頼」を追加し、Claude Code に次の行を貼る。</li>
+      </ol>
+      <div class="cmd"><code>${PROMPT_QUEUE}</code>${copyBtn(PROMPT_QUEUE, 'コピー')}</div>
+      <small>/ で始まるコマンドが使えない場合は、こちらを貼ってください。</small>
+      <div class="cmd"><code>${esc(PROMPT_PLAIN)}</code>${copyBtn(PROMPT_PLAIN, 'コピー')}</div>
+      <p class="sm">結果はClaude Codeが data/biz.json に書き込み、この画面に1〜2秒で反映されます。</p>
+    </section>
+    <section class="panel"><h2>接続とデータ</h2>
+      <p style="margin:0 0 8px">${S.conn === 'connected' ? `接続中: <b>${esc(S.dirName)}/data/biz.json</b>` : '<b>フォルダに接続していません</b>'}</p>
+      <div class="toolbar" style="margin:0">
+        ${S.conn === 'needs-permission' ? '<button class="btn primary" data-act="reconnect">再接続する</button>' : `<button class="btn ${S.fh ? '' : 'primary'}" data-act="connect">${S.fh ? '別のフォルダに切り替え' : 'フォルダを接続'}</button>`}
+        ${S.fh ? '<button class="btn" data-act="forget">接続を解除</button>' : ''}
+        <button class="btn" data-act="export">JSONを書き出し</button><button class="btn" data-act="import">JSONを読み込み</button></div>
+      <p class="sm" style="margin-top:10px">対応ブラウザ: Chrome / Edge。Documents や Desktop などのフォルダ自体は選べないため、その中にプロジェクト用のフォルダを作って選んでください。</p>
+    </section>
+  </div>
+  <div class="two">
+    <section class="panel"><h2>Claude Codeへの依頼 <small>担当が Claude Code のタスク</small></h2>
+      <p style="margin:0"><button class="btn claude" data-act="askClaude" data-ref="">依頼を追加</button></p>
+      ${grp('待機', q.todo, 'amber')}${grp('作業中', q.doing, 'indigo')}${grp('完了(新しい5件)', q.done, 'green')}
+    </section>
+    <section class="panel"><h2>活動ログ</h2>
+      ${logs.length ? `<div class="log">${logs.map(l => `<div><time>${esc(fmtTime(l.at))}</time><span class="pill ${l.who === 'claude' ? 'amber' : ''}">${esc(WHO[l.who] || l.who)}</span><span>${esc(l.text)}</span></div>`).join('')}</div>` : '<p class="empty">まだありません。</p>'}
+    </section>
+  </div>`;
+}
+const VIEWS = { overview: vOverview, pipeline: vPipeline, products: vProducts, tasks: vTasks, tools: vTools, intel: vIntel, claude: vClaude };
+
+/* ---------- drawers ---------- */
+const relatedTasks = (prefix, id) => {
+  const ts_ = D().tasks.filter(t => t.ref === prefix + ':' + id);
+  return ts_.length ? `<ul class="list">${ts_.map(t => `<li><div class="grow"><button class="link t" data-act="open" data-col="tasks" data-id="${t.id}">${esc(t.title)}</button></div><span class="pill ${t.assignee === 'claude' ? 'amber' : ''}">${t.assignee === 'claude' ? 'Claude' : '自分'}</span><span class="pill">${esc((TASK_STATUS.find(x => x[0] === t.status) || [])[1])}</span></li>`).join('')}</ul>` : '<small class="muted">なし</small>';
+};
+const dHead = it => `<div class="dh"><h2 class="dt">${esc(titleOf(it))}</h2><button class="btn sm" data-act="closeDrawer">閉じる</button></div>`;
+const dMeta = it => `<div class="sec"><h3>記録</h3><small>作成 ${esc(fmtDate(it.createdAt))} / 更新 ${esc(fmtTime(it.updatedAt))} / ID ${esc(it.id)}${it.sample ? ' / サンプル' : ''}</small></div>`;
+const DRAWERS = {
+  products(p) {
+    const done = p.checklist.filter(c => c.done).length, st = stages();
+    return `${dHead(p)}<div class="db">
+      <div class="stagechips">${st.map(s => `<button class="${p.stage === s ? 'on' : ''}" data-act="setStage" data-id="${p.id}" data-stage="${esc(s)}">${esc(s)}</button>`).join('')}<button class="out ${p.stage === '撤退' ? 'on' : ''}" data-act="setStage" data-id="${p.id}" data-stage="撤退">撤退</button></div>
+      ${needsDecision(p) ? `<div class="banner bad"><p>出品から${daysSince(p.listedAt)}日たち、販売が0です。撤退か、改善して継続かを決めましょう。</p></div>` : ''}
+      <div class="fgrid">${PFIELDS.map(f => fieldHtml(f, p[f.k])).join('')}</div>
+      <div class="sec"><h3>リリース前チェック(${done}/${p.checklist.length})</h3>
+        ${p.checklist.map((c, i) => `<label class="check ${c.done ? 'done' : ''}"><input type="checkbox" data-act="toggleCheck" data-id="${p.id}" data-i="${i}"${c.done ? ' checked' : ''}><span>${esc(c.text)}</span><button type="button" class="btn sm ghost" data-act="delCheck" data-id="${p.id}" data-i="${i}" aria-label="項目を削除">×</button></label>`).join('') || '<small class="muted">項目がありません。</small>'}
+        <div class="addline"><input data-addcheck="${p.id}" placeholder="項目を追加して Enter" aria-label="チェック項目を追加">${p.checklist.length ? '' : `<button class="btn sm" data-act="defaultCheck" data-id="${p.id}">標準の項目を入れる</button>`}</div></div>
+      <div class="sec"><h3>関連タスク</h3>${relatedTasks('product', p.id)}<p style="margin:8px 0 0"><button class="btn sm" data-act="addTask" data-ref="product:${p.id}">タスクを追加</button></p></div>
+      ${dMeta(p)}</div>
+      <div class="df"><button class="btn claude" data-act="askClaude" data-ref="product:${p.id}">Claudeに依頼</button>
+        ${p.stage === '撤退' ? `<button class="btn" data-act="setStage" data-id="${p.id}" data-stage="${esc(st[0])}">復帰させる</button>` : `<button class="btn" data-act="retire" data-id="${p.id}">撤退にする</button>`}
+        <button class="btn danger" data-act="del" data-col="products" data-id="${p.id}">削除</button></div>`;
+  },
+  tasks(t) {
+    const r = refInfo(t.ref);
+    return `${dHead(t)}<div class="db">
+      <div class="fgrid">${tfields().map(f => fieldHtml(f, t[f.k])).join('')}</div>
+      ${r ? `<div class="sec"><h3>関連</h3><button class="link" data-act="open" data-col="${r.col}" data-id="${r.id}">${esc(r.label)}</button></div>` : ''}
+      ${t.assignee === 'claude' ? `<div class="sec"><h3>Claude Codeで処理する</h3><div class="cmd"><code>${PROMPT_QUEUE} ${esc(t.id)}</code>${copyBtn(PROMPT_QUEUE + ' ' + t.id, 'コピー')}</div></div>` : ''}
+      ${dMeta(t)}</div>
+      <div class="df">${t.status !== 'done' ? `<button class="btn primary" data-act="markDone" data-id="${t.id}">完了にする</button>` : ''}<button class="btn danger" data-act="del" data-col="tasks" data-id="${t.id}">削除</button></div>`;
+  },
+  tools(k) {
+    return `${dHead(k)}<div class="db"><div class="fgrid">${KFIELDS.map(f => fieldHtml(f, k[f.k])).join('')}</div>
+      ${safeUrl(k.url) ? `<p><a href="${esc(safeUrl(k.url))}" target="_blank" rel="noopener noreferrer">サイトを開く</a></p>` : ''}
+      <div class="sec"><h3>関連タスク</h3>${relatedTasks('tool', k.id)}</div>${dMeta(k)}</div>
+      <div class="df"><button class="btn claude" data-act="researchTool" data-id="${k.id}">Claudeに調べさせる</button><button class="btn danger" data-act="del" data-col="tools" data-id="${k.id}">削除</button></div>`;
+  },
+  intel(i) {
+    return `${dHead(i)}<div class="db"><div class="fgrid">${IFIELDS.map(f => fieldHtml(f, i[f.k])).join('')}</div>
+      ${safeUrl(i.url) ? `<p><a href="${esc(safeUrl(i.url))}" target="_blank" rel="noopener noreferrer">元のページを開く</a></p>` : ''}
+      <div class="sec"><h3>関連タスク</h3>${relatedTasks('intel', i.id)}</div>${dMeta(i)}</div>
+      <div class="df"><button class="btn claude" data-act="askClaude" data-ref="intel:${i.id}" data-tpl="">Claudeに依頼</button><button class="btn danger" data-act="del" data-col="intel" data-id="${i.id}">削除</button></div>`;
+  }
+};
+
+/* ---------- render ---------- */
+function connStatus() {
+  if (S.conn === 'connected') return { cls: S.dirty ? 'warn' : 'ok', text: S.dirty ? '保存中…' : `${S.dirName}/data/biz.json に保存済み${S.savedAt ? ' ' + hhmm(S.savedAt) : ''}` };
+  if (S.conn === 'needs-permission') return { cls: 'warn', text: 'フォルダへの再接続が必要です' };
+  if (S.conn === 'error') return { cls: 'bad', text: 'データを読み込めません' };
+  if (S.conn === 'unsupported') return { cls: 'warn', text: 'このブラウザはフォルダ接続に非対応' };
+  return { cls: 'warn', text: S.dirty ? '保存中…' : 'フォルダ未接続(このブラウザ内だけに保存)' };
+}
+function renderRail() {
+  const n = {
+    products: D().products.filter(p => p.stage !== '撤退').length,
+    tasks: D().tasks.filter(t => t.status !== 'done' && t.assignee === 'me').length,
+    intel: D().intel.filter(i => i.status === '新着').length,
+    claude: claudeQueue('todo').length
+  };
+  $('#rail').innerHTML = `<div class="brand">${esc(D().meta.name)}<small>Claude Codeと同じデータを見ます</small></div>` +
+    Object.keys(VIEWS).map(v => `<button class="nav" data-act="nav" data-v="${v}"${S.view === v ? ' aria-current="page"' : ''}><span>${VIEW_LABEL[v]}</span>${n[v] ? `<span class="count${v === 'claude' ? ' claude' : ''}">${n[v]}</span>` : ''}</button>`).join('') +
+    `<div class="foot">更新 ${esc(fmtTime(D().meta.updatedAt))}</div>`;
+}
+function renderTop() {
+  const st = connStatus();
+  $('#top').innerHTML = `<h1>${esc(VIEW_LABEL[S.view])}</h1><span class="status ${st.cls}"><i></i>${esc(st.text)}</span><button class="btn claude" data-act="askClaude" data-ref="">Claudeに依頼</button>`;
+}
+function renderBanner() {
+  let h = '';
+  if (S.conn === 'needs-permission') h += `<div class="banner"><p>前回のフォルダ「${esc(S.pendingDir ? S.pendingDir.name : '')}」に再接続します。ブラウザの安全のため、開くたびに1回の許可が必要です。</p><button class="btn primary" data-act="reconnect">再接続する</button></div>`;
+  else if (S.conn === 'unsupported') h += '<div class="banner"><p>このブラウザはフォルダ接続に対応していません。Chrome か Edge で開いてください。いまはこのブラウザ内にだけ保存されます。</p></div>';
+  else if (S.conn === 'demo') h += '<div class="banner"><p>プロジェクトのフォルダを接続すると、Claude Codeと同じデータ(data/biz.json)を読み書きできます。いまはこのブラウザ内にだけ保存されます。</p><button class="btn primary" data-act="connect">フォルダを接続</button></div>';
+  else if (S.conn === 'error') h += `<div class="banner bad"><p>${esc(S.err)}</p></div>`;
+  if (hasSample()) h += '<div class="banner"><p>サンプルデータが入っています。操作を試してから、不要になったら削除してください。</p><button class="btn" data-act="clearSample">サンプルをすべて削除</button></div>';
+  $('#banner').innerHTML = h;
+}
+function renderView() {
+  const ae = document.activeElement;
+  const keep = ae && ae.dataset && ae.dataset.keep ? { id: ae.dataset.keep, s: ae.selectionStart, e: ae.selectionEnd } : null;
+  $('#view').innerHTML = VIEWS[S.view]();
+  if (keep) {
+    const el = $(`[data-keep="${keep.id}"]`);
+    if (el) { el.focus(); try { el.setSelectionRange(keep.s, keep.e); } catch (e) { /* select */ } }
+  }
+}
+function renderDrawer() {
+  const dr = $('#drawer'), sc = $('#scrim');
+  const it = S.drawer && byId(S.drawer.col, S.drawer.id);
+  if (!it) {
+    S.drawer = null; dr.classList.remove('on'); sc.classList.remove('on'); dr.setAttribute('aria-hidden', 'true'); dr.innerHTML = ''; return;
+  }
+  const old = $('#drawer .db'), top = old ? old.scrollTop : 0;
+  dr.innerHTML = DRAWERS[S.drawer.col](it);
+  dr.classList.add('on'); sc.classList.add('on'); dr.setAttribute('aria-hidden', 'false');
+  const nb = $('#drawer .db'); if (nb) nb.scrollTop = top;
+}
+function renderAll(opts) {
+  renderRail(); renderTop(); renderBanner(); renderView();
+  if (!(opts && opts.keepDrawer)) renderDrawer();
+}
+
+/* ---------- toast / copy ---------- */
+function toast(msg, action) {
+  const root = $('#toasts'); if (!root) return;
+  const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status');
+  el.innerHTML = `<span>${esc(msg)}</span>`;
+  if (action) { const b = document.createElement('button'); b.textContent = action.label; b.onclick = () => { action.fn(); el.remove(); }; el.appendChild(b); }
+  root.appendChild(el); setTimeout(() => el.remove(), action ? 9000 : 4000);
+}
+async function copyText(t) {
+  try { await navigator.clipboard.writeText(t); }
+  catch (e) { const ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch (e2) { /* ignore */ } ta.remove(); }
+  toast('コピーしました: ' + (t.length > 36 ? t.slice(0, 36) + '…' : t));
+}
+
+/* ---------- modal forms ---------- */
+function openForm(spec) {
+  S.modal = spec; renderModal();
+  setTimeout(() => { const el = $('#mform [name]'); if (el) el.focus(); }, 0);
+}
+function closeModal() { S.modal = null; $('#modal-root').innerHTML = ''; }
+function renderModal() {
+  const m = S.modal; if (!m) { $('#modal-root').innerHTML = ''; return; }
+  const tpls = m.templates ? `<div class="tpls">${m.templates.map(t => `<button type="button" class="chip" data-act="applyTpl" data-key="${t.key}">${esc(t.label)}</button>`).join('')}</div>` : '';
+  $('#modal-root').innerHTML = `<div class="ms" data-act="closeModal"></div><form id="mform" autocomplete="off" role="dialog" aria-modal="true" aria-label="${esc(m.title)}"><h2>${esc(m.title)}</h2>${m.lead ? `<p class="sm" style="margin:-6px 0 10px">${esc(m.lead)}</p>` : ''}${tpls}
+    <div class="fgrid">${m.fields.map(f => fieldHtml(f, f.value, 'form')).join('')}</div>
+    <div class="actions"><button type="button" class="btn" data-act="closeModal">キャンセル</button><button class="btn ${m.claude ? 'claude' : 'primary'}" type="submit">${esc(m.submit || '保存')}</button></div></form>`;
+}
+function askClaudeForm(ref, tplKey) {
+  const tpl = TEMPLATES.find(t => t.key === tplKey);
+  const fill = tpl ? tpl.fill : {};
+  openForm({
+    title: 'Claude Codeに依頼する', claude: true, submit: '依頼を追加', templates: TEMPLATES,
+    lead: '追加した依頼は、Claude Codeで /biz-queue を実行すると処理されます。',
+    fields: [
+      { k: 'title', l: '依頼のタイトル', full: 1, required: 1, value: fill.title || '' },
+      { k: 'kind', l: '種類', type: 'select', options: Object.entries(TASK_KINDS), value: fill.kind || 'research' },
+      { k: 'priority', l: '優先度', type: 'select', options: PRIORITIES, value: 'mid' },
+      { k: 'ref', l: '関連(あれば)', type: 'select', options: refOptions(), value: ref || '', full: 1 },
+      { k: 'notes', l: '詳しい指示', type: 'textarea', full: 1, rows: 6, value: fill.notes || '', ph: '何をしてほしいか、どの形で結果がほしいかを書く' }
+    ],
+    onSubmit: v => {
+      createTask({ assignee: 'claude', title: v.title, kind: v.kind, priority: v.priority, ref: v.ref, notes: v.notes });
+      toast('Claudeへの依頼を追加しました', { label: PROMPT_QUEUE + ' をコピー', fn: () => copyText(PROMPT_QUEUE) });
+    }
+  });
+}
+function addProductForm() {
+  openForm({
+    title: '商品を追加', submit: '追加',
+    fields: [
+      { k: 'name', l: '商品名', full: 1, required: 1 }, { k: 'kind', l: '種類', type: 'select', options: KINDS, value: KINDS[0] }, { k: 'market', l: '市場', type: 'select', options: MARKETS, value: 'JP' },
+      { k: 'channel', l: '販売先', ph: 'Etsy / BOOTH / 自サイト' }, { k: 'niche', l: 'ニッチ・キーワード' }
+    ],
+    onSubmit: v => {
+      const p = { id: uid('p'), name: v.name, kind: v.kind, market: v.market, channel: v.channel, stage: stages()[0], stageAt: today(), price: 0, currency: v.market === 'EN' ? 'USD' : 'JPY', url: '', listedAt: '', sales: 0, revenue: 0, niche: v.niche, folder: '', notes: '', checklist: CHECK_DEFAULT.map(text => ({ text, done: false })), createdAt: nowIso(), updatedAt: nowIso() };
+      D().products.push(p); logAdd(`商品を追加: ${p.name}`); S.drawer = { col: 'products', id: p.id }; commit();
+    }
+  });
+}
+function addTaskForm(ref) {
+  openForm({
+    title: 'タスクを追加', submit: '追加',
+    fields: [
+      { k: 'title', l: 'タイトル', full: 1, required: 1 }, { k: 'assignee', l: '担当', type: 'select', options: ASSIGNEES, value: 'me' }, { k: 'priority', l: '優先度', type: 'select', options: PRIORITIES, value: 'mid' },
+      { k: 'due', l: '期限', type: 'date' }, { k: 'kind', l: '種類', type: 'select', options: Object.entries(TASK_KINDS), value: 'other' },
+      { k: 'ref', l: '関連(あれば)', type: 'select', options: refOptions(), value: ref || '', full: 1 }, { k: 'notes', l: '指示・メモ', type: 'textarea', full: 1, rows: 3 }
+    ],
+    onSubmit: v => createTask(v)
+  });
+}
+function addToolForm() {
+  openForm({
+    title: 'ツールを追加', submit: '追加',
+    fields: [{ k: 'name', l: 'ツール名', full: 1, required: 1 }, { k: 'category', l: 'カテゴリ', type: 'select', options: TOOL_CATS }, { k: 'url', l: 'URL' }, { k: 'notes', l: 'メモ', type: 'textarea', full: 1, rows: 3 }],
+    onSubmit: v => {
+      const k = { id: uid('k'), name: v.name, category: v.category, status: '気になる', url: v.url, cost: '', pros: '', cons: '', affiliate: '', notes: v.notes, createdAt: nowIso(), updatedAt: nowIso() };
+      D().tools.push(k); logAdd(`ツールを追加: ${k.name}`); S.drawer = { col: 'tools', id: k.id }; commit();
+    }
+  });
+}
+function scoutToolsForm() {
+  openForm({
+    title: 'Claudeにツールを探させる', claude: true, submit: '依頼を追加',
+    lead: '候補は tools に「気になる」として追加され、出典URLがメモに残ります。',
+    fields: [{ k: 'need', l: '何をしたいか', full: 1, required: 1, ph: '例: 英語圏で購入ボタンだけ置いてデジタル商品を売りたい' }, { k: 'cat', l: 'カテゴリ', type: 'select', options: TOOL_CATS }],
+    onSubmit: v => {
+      createTask({ assignee: 'claude', kind: 'research', priority: 'mid', title: `ツール候補を探す: ${v.need}`, notes: `目的: ${v.need}\nカテゴリ: ${v.cat}\n候補を5つ、料金・手数料・規約上の注意・代替を最新情報で確認し、tools に status=気になる で追加してください。出典URLと確認日を notes に書いてください。` });
+      toast('Claudeへの依頼を追加しました', { label: PROMPT_QUEUE + ' をコピー', fn: () => copyText(PROMPT_QUEUE) });
+    }
+  });
+}
+
+/* ---------- actions ---------- */
+const ACTIONS = {
+  nav(el) { S.view = el.dataset.v; S.drawer = null; S.colMenu = false; renderAll(); window.scrollTo && window.scrollTo(0, 0); },
+  goStage(el) { S.f.pstage = el.dataset.stage; S.view = 'products'; renderAll(); },
+  open(el) { S.drawer = { col: el.dataset.col, id: el.dataset.id }; renderDrawer(); },
+  closeDrawer() { S.drawer = null; renderDrawer(); },
+  closeModal() { closeModal(); },
+  setStage(el) { const p = byId('products', el.dataset.id); if (p) setStage(p, el.dataset.stage); },
+  retire(el) { const p = byId('products', el.dataset.id); if (p && confirm(`「${p.name}」を撤退にします。よろしいですか?`)) setStage(p, '撤退'); },
+  toggleDone(el) { setTaskStatus(el.dataset.id, el.checked ? 'done' : 'todo'); },
+  markDone(el) { setTaskStatus(el.dataset.id, 'done'); },
+  toggleCheck(el) { const p = byId('products', el.dataset.id); if (!p) return; const c = p.checklist[+el.dataset.i]; c.done = !c.done; touchItem(p); commit(); },
+  delCheck(el, e) { e.preventDefault(); const p = byId('products', el.dataset.id); if (!p) return; p.checklist.splice(+el.dataset.i, 1); touchItem(p); commit(); },
+  defaultCheck(el) { const p = byId('products', el.dataset.id); if (!p) return; p.checklist = CHECK_DEFAULT.map(text => ({ text, done: false })); touchItem(p); commit(); },
+  del(el) { const it = byId(el.dataset.col, el.dataset.id); if (it && confirm(`「${titleOf(it)}」を削除します。元に戻せません。よろしいですか?`)) removeItem(el.dataset.col, el.dataset.id); },
+  filter(el) { S.f[el.dataset.k] = el.dataset.v; renderView(); },
+  toggleRetired() { S.f.showRetired = !S.f.showRetired; renderView(); },
+  sort(el) { const k = el.dataset.k, s = S.f.psort; S.f.psort = s.k === k ? { k, dir: -s.dir } : { k, dir: 1 }; renderView(); },
+  colMenu() { S.colMenu = !S.colMenu; renderView(); },
+  addProduct() { addProductForm(); },
+  addTask(el) { addTaskForm(el.dataset.ref || ''); },
+  addTool() { addToolForm(); },
+  scoutTools() { scoutToolsForm(); },
+  askClaude(el) { askClaudeForm(el.dataset.ref || '', el.dataset.tpl || ''); },
+  researchTool(el) {
+    const k = byId('tools', el.dataset.id); if (!k) return;
+    createTask({ assignee: 'claude', kind: 'research', priority: 'mid', title: `ツールを調べる: ${k.name}`, ref: 'tool:' + k.id, notes: `${k.name} の料金・手数料・規約上の注意・代替を最新情報で確認し、このツールの cost / pros / cons / affiliate / notes を更新してください。出典URLと確認日を notes に書いてください。` });
+    toast('Claudeへの依頼を追加しました', { label: PROMPT_QUEUE + ' をコピー', fn: () => copyText(PROMPT_QUEUE) });
+  },
+  applyTpl(el) {
+    const t = TEMPLATES.find(x => x.key === el.dataset.key), f = $('#mform'); if (!t || !f) return;
+    Object.entries(t.fill).forEach(([k, v]) => { if (f.elements[k]) f.elements[k].value = v; });
+  },
+  capture() { captureIntel(); },
+  triageIntel() {
+    const n = D().intel.filter(i => i.status === '新着').length;
+    if (D().tasks.some(t => t.title === '新着の情報を整理する' && t.status !== 'done')) { toast('同じ依頼がすでにあります'); return; }
+    createTask({ assignee: 'claude', kind: 'research', priority: 'mid', title: '新着の情報を整理する', notes: `intel のうち status=新着 の ${n} 件を読み、summary(要点)・tags・rating(使える度1〜3)・type を埋めてください。URLがあるものは内容を確認し、確認できなかったものは summary に「未確認」と書いてください。整理できたものは status を 確認済 にしてください。` });
+    toast('Claudeへの依頼を追加しました', { label: PROMPT_QUEUE + ' をコピー', fn: () => copyText(PROMPT_QUEUE) });
+  },
+  copy(el) { copyText(el.dataset.text); },
+  connect() { connectFolder(); },
+  reconnect() { reconnectFolder(); },
+  forget() { forgetFolder(); },
+  export() {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(D(), null, 2)], { type: 'application/json' }));
+    a.download = `biz-${today().replace(/-/g, '')}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  },
+  import() { $('#importer').click(); },
+  clearSample() {
+    if (!confirm('サンプルのデータ(商品・タスク・ツール・情報)をすべて削除します。よろしいですか?')) return;
+    let n = 0;
+    DATACOLS.forEach(c => { D()[c] = D()[c].filter(x => { if (x.sample) { D().deleted.push({ id: x.id, at: nowIso() }); n++; return false; } return true; }); });
+    S.drawer = null; logAdd(`サンプルデータ ${n} 件を削除`); commit();
+  }
+};
+
+function captureIntel() {
+  const inp = $('[data-capture]'), sel = $('[data-capture-type]'); if (!inp) return;
+  const v = inp.value.trim(); if (!v) { toast('URLかメモを入力してください'); return; }
+  const isUrl = /^https?:\/\/\S+$/i.test(v); let title = v.slice(0, 60);
+  if (isUrl) { try { title = new URL(v).hostname; } catch (e) { /* keep */ } }
+  const it = { id: uid('i'), title, url: isUrl ? v : '', type: sel ? sel.value : 'メモ', summary: isUrl ? '' : v, notes: '', tags: [], rating: 0, status: '新着', source: 'me', createdAt: nowIso(), updatedAt: nowIso() };
+  D().intel.push(it); logAdd(`情報を追加: ${it.title}`); commit();
+  const again = $('[data-capture]'); if (again) again.focus();
+  toast('保存しました。「Claudeに整理させる」で要点をまとめられます');
+}
+
+/* ---------- events ---------- */
+function bindEvents() {
+  document.addEventListener('click', e => {
+    if (S.colMenu && !e.target.closest('.popwrap')) { S.colMenu = false; renderView(); }
+    const a = e.target.closest('[data-act]'); if (!a) return;
+    const fn = ACTIONS[a.dataset.act]; if (fn) fn(a, e);
+  });
+  document.addEventListener('change', e => {
+    const c = e.target.closest('[data-col]');
+    if (c && c.tagName === 'INPUT') { S.cols[c.dataset.col] = c.checked ? 1 : 0; try { localStorage.setItem('biz-cols', JSON.stringify(S.cols)); } catch (x) { /* ignore */ } renderView(); return; }
+    const el = e.target.closest('[data-f]');
+    if (el && S.drawer) {
+      const it = byId(S.drawer.col, S.drawer.id); if (!it) return;
+      const k = el.dataset.f, t = el.dataset.t; let v = el.value;
+      if (t === 'number') v = v === '' ? 0 : Number(v);
+      if (t === 'tags') v = v.split(/[,、]/).map(s => s.trim()).filter(Boolean);
+      it[k] = v; touchItem(it);
+      if (S.drawer.col === 'tasks' && k === 'status') { if (v === 'done') it.doneAt = nowIso(); else delete it.doneAt; logAdd(`タスク「${it.title}」→ ${(TASK_STATUS.find(x => x[0] === v) || [])[1]}`); }
+      if (k === 'name' || k === 'title') { const h = $('#drawer .dt'); if (h) h.textContent = titleOf(it); }
+      commit({ keepDrawer: true });
+    }
+    if (e.target.id === 'importer') {
+      const file = e.target.files && e.target.files[0]; if (!file) return;
+      file.text().then(txt => {
+        let d; try { d = normalize(JSON.parse(txt)); } catch (x) { toast('JSONを読み込めませんでした'); return; }
+        if (!confirm('現在のデータを、読み込んだファイルの内容で置き換えます。よろしいですか?')) return;
+        S.data = d; S.drawer = null; logAdd('JSONを読み込み'); commit();
+      });
+      e.target.value = '';
+    }
+  });
+  const applyFilter = e => {
+    const fl = e.target.closest && e.target.closest('[data-filter]');
+    if (fl) { S.f[fl.dataset.filter] = fl.value; renderView(); }
+  };
+  document.addEventListener('input', e => { if (!e.isComposing) applyFilter(e); });
+  document.addEventListener('compositionend', applyFilter);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { if (S.modal) closeModal(); else if (S.drawer) { S.drawer = null; renderDrawer(); } return; }
+    if (e.key !== 'Enter' || e.isComposing) return;
+    const t = e.target;
+    if (t.dataset && t.dataset.addcheck) {
+      e.preventDefault(); const p = byId('products', t.dataset.addcheck), v = t.value.trim(); if (!p || !v) return;
+      p.checklist.push({ text: v, done: false }); touchItem(p); commit();
+      const n = $(`[data-addcheck="${p.id}"]`); if (n) n.focus();
+    } else if (t.dataset && t.dataset.capture !== undefined) { e.preventDefault(); captureIntel(); }
+  });
+  document.addEventListener('submit', e => {
+    if (e.target.id !== 'mform') return;
+    e.preventDefault();
+    const m = S.modal, fd = new FormData(e.target), vals = {};
+    for (const f of m.fields) {
+      let v = String(fd.get(f.k) == null ? '' : fd.get(f.k)).trim();
+      if (f.required && !v) { toast(`${f.l}を入力してください`); return; }
+      if (f.type === 'number') v = Number(v) || 0;
+      vals[f.k] = v;
+    }
+    closeModal(); m.onSubmit(vals);
+  });
+  document.addEventListener('dragstart', e => {
+    const c = e.target.closest && e.target.closest('.card[data-id]'); if (!c) return;
+    e.dataTransfer.setData('text/plain', c.dataset.id); e.dataTransfer.effectAllowed = 'move'; c.classList.add('dragging');
+  });
+  document.addEventListener('dragend', () => { $$('.dragging').forEach(x => x.classList.remove('dragging')); $$('.col.over').forEach(x => x.classList.remove('over')); });
+  document.addEventListener('dragover', e => {
+    const c = e.target.closest && e.target.closest('.col[data-drop]');
+    if (c) { e.preventDefault(); $$('.col.over').forEach(x => { if (x !== c) x.classList.remove('over'); }); c.classList.add('over'); }
+  });
+  document.addEventListener('drop', e => {
+    const c = e.target.closest && e.target.closest('.col[data-drop]'); if (!c) return;
+    e.preventDefault(); setTaskStatus(e.dataTransfer.getData('text/plain'), c.dataset.drop);
+  });
+  window.addEventListener('beforeunload', e => { if (S.dirty && S.fh) { e.preventDefault(); e.returnValue = ''; } });
+}
+
+/* ---------- init ---------- */
+async function restore() {
+  if (!window.showDirectoryPicker) { S.conn = 'unsupported'; return; }
+  try {
+    const dir = await idbGet('dir');
+    if (dir) {
+      const p = await dir.queryPermission({ mode: 'readwrite' });
+      if (p === 'granted') { await useDir(dir); return; }
+      S.pendingDir = dir; S.conn = 'needs-permission';
+    }
+  } catch (e) { /* fall back to demo */ }
+}
+async function init() {
+  S.cols = loadCols(); S.data = loadDemo(); S.conn = 'demo';
+  bindEvents();
+  await restore();
+  renderAll();
+}
+if (typeof window !== 'undefined') window.__biz = { S, normalize, merge, VIEWS, DRAWERS, ACTIONS, renderAll, createTask, needsDecision, seedData, useDir, save };
+if (typeof window !== 'undefined' && !window.__BIZ_TEST__) init();
+
+</script>
+</body>
+</html>

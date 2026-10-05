@@ -1,0 +1,12 @@
+.env
+.env.*
+node_modules/
+.DS_Store
+Thumbs.db
+
+# 事業の中身(公開リポジトリに載せない)
+data/
+products/*
+!products/.gitkeep
+reports/*
+!reports/.gitkeep

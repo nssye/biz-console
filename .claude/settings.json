@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Edit(data/**)",
+      "Edit(products/**)",
+      "Edit(reports/**)",
+      "WebSearch"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)"
+    ]
+  }
+}
